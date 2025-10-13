@@ -6,17 +6,18 @@
 }
 
 :root {
-  --color-background: #1e1e24;
-  --color-surface: #2a2a33;
-  --color-primary: #7f5af0;
-  --color-accent: #2cb67d;
-  --color-error: #ff6b6b;
-
-  --color-text-primary: #e4e4e7;
-  --color-text-secondary: #a1a1aa;
-
-  --color-border: #3f3f46;
-  --color-shadow: rgba(0, 0, 0, 0.25);
+    --color-background: #1e1e24;
+    --color-surface: #2a2a33;
+    --color-primary: #7f5af0;
+    --color-primary-hover: #8864f1;
+    --color-accent: #2cb67d;
+    --color-error: #ff6b6b;
+    
+    --color-text-primary: #e4e4e7;
+    --color-text-secondary: #a1a1aa;
+    
+    --color-border: #3f3f46;
+    --color-shadow: rgba(0, 0, 0, 0.25);
 }
 
 header {

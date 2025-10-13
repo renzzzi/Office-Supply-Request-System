@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Office Supply | Admin</title>
     <link rel="stylesheet" href="../assets/universal-style.css">
-    <link rel="stylesheet" href="../assets/admin-dashboard.css">
+    <link rel="stylesheet" href="../assets/admin/header-style.css">
+    <link rel="stylesheet" href="../assets/admin/main-style.css">
 </head>
 <body>
     <header>

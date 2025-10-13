@@ -5,7 +5,7 @@ class Database
     private $host = "127.0.0.1";
     private $username = "root";
     private $password = "";
-    private $db_name = "office_supply_request";
+    private $db_name = "supply_desk";
 
     protected $conn;
 
