@@ -11,7 +11,7 @@ class Database
 
     protected function connect()
     {
-        $this->conn = new PDO("mysql:host = $this->host; dbname = $this->dbname", $this->username, $this->password);
+        $this->conn = new PDO("mysql:host = $this->host; dbname = $this->db_name", $this->username, $this->password);
         return $this->conn;
     }
 }
