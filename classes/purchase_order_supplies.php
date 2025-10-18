@@ -1,24 +1,9 @@
 <?php
 
-/*
-
-CREATE TABLE purchase_order_supply(
-    purchase_order_id INT NOT NULL,
-    supply_id INT NOT NULL,
-    supply_quantity INT NOT NULL CHECK (supply_quantity > 0),
-    price_per_unit DECIMAL(8, 2) NOT NULL,
-
-    PRIMARY KEY (purchase_order_id, supply_id),
-    FOREIGN KEY (purchase_order_id) REFERENCES purchase_order(id)
-        ON UPDATE CASCADE,
-    FOREIGN KEY (supply_id) REFERENCES supply(id)
-        ON UPDATE CASCADE
-); 
-
-*/
-
-class PurchaseOrderSupply extends Database
+class PurchaseOrderSupplies
 {
+    private $pdo;
+    
     public $purchase_order_id = "";
     public $supply_id = "";
     public $supply_quantity = "";
