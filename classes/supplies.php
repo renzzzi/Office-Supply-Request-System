@@ -1,24 +1,8 @@
 <?php
 
-/*
-
-CREATE TABLE supply (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    category_id INT NOT NULL,
-    name VARCHAR(50) UNIQUE NOT NULL,
-    unit_of_supply VARCHAR(30) NOT NULL,
-    price_per_unit DECIMAL(8, 2) NOT NULL,
-    stock_quantity INT,
-
-    FOREIGN KEY (category_id) REFERENCES category(id)
-        ON UPDATE CASCADE
-);
-
-*/
-
 require_once "database.php";
 
-class Supply extends Database 
+class Supplies extends Database 
 {
     public $id = "";
     public $category_id = "";

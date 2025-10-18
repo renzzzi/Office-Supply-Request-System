@@ -1,22 +1,8 @@
 <?php
 
-/*
-
-CREATE TABLE user (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    department_id INT NOT NULL,
-    role ENUM('requester', 'processor', 'admin') NOT NULL DEFAULT 'requester',
-
-    FOREIGN KEY (department_id) REFERENCES department(id)
-);
-
-*/
-
 require_once "database.php";
 
-class User extends Database
+class Users extends Database
 {
     public $id = "";
     public $name = "";

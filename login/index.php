@@ -1,3 +1,37 @@
+<?php
+
+require_once "../classes/database.php";
+
+$user = [];
+$errors = [];
+
+if ($_SERVER["REQUEST_METHOD"] === "POST")
+{
+    $user["email"] = trim(htmlspecialchars($_POST["email"]));
+    $user["password"] = trim(htmlspecialchars($_POST["password"]));
+
+    if (empty($user["email"]))
+    {
+        $errors["email"] = "Email address is required";
+    }
+    else if (!filter_var($user["email"], FILTER_VALIDATE_EMAIL))
+    {
+        $errors["email"] = "Email address must be in a valid format.";
+    }
+
+    if (empty($user["password"]))
+    {
+        $errors["password"] = "Password is required.";
+    }
+
+    if (empty(array_filter($errors)))
+    {
+        echo "Success!";
+    }
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,13 +54,17 @@
                 <form action="" method="POST" class="login-form">
                     <div class="form-group">
                         <label for="email">Email Address</label>
-                        <input type="email" id="email" name="email" placeholder="email@example.com" required>
+                        <p class="error"><?= $errors["email"] ?? "" ?></p>
+                        <input type="email" id="email" name="email" 
+                        value="<?= $user["email"] ?? '' ?>" placeholder="email@example.com" required>
                     </div>
                     <div class="form-group">
                         <label for="password">Password</label>
-                        <input type="password" id="password" name="password" placeholder="••••••••" required>
+                        <p class="error"><?= $errors["password"] ?? ""?></p>
+                        <input type="password" id="password" name="password" 
+                        value="<?= $user["password"] ?? '' ?>" placeholder="••••••••" required>
                     </div>
-                    <button type="submit" class="submit-button">Log In</button>
+                    <button type="submit" class="login-button">Log In</button>
                 </form>
                 <footer class="login-footer">
                     <a href="" class="forgot-password-link">Forgot Password?</a>

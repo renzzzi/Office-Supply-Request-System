@@ -1,15 +1,6 @@
 <?php
 
-/*
-
-CREATE TABLE supply_category (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE
-);
-
-*/
-
-class SupplyCategory extends Database
+class SupplyCategories extends Database
 {
     public $id = "";
     public $name = "";

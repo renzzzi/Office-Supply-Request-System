@@ -1,15 +1,6 @@
 <?php
 
-/*
-
-CREATE TABLE department (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE
-);
-
-*/
-
-class Department extends Database
+class Departments extends Database
 {
     public $id = "";
     public $name = "";

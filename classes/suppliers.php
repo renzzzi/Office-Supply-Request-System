@@ -1,17 +1,6 @@
 <?php
 
-/*
-
-CREATE TABLE supplier (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    company_name VARCHAR(100) NOT NULL,
-    contact_person VARCHAR(100) NOT NULL,
-    contact_email VARCHAR(100) NOT NULL UNIQUE
-);
-
-*/
-
-class Supplier extends Database
+class Suppliers extends Database
 {
     public $id = "";
     public $company_name = "";
