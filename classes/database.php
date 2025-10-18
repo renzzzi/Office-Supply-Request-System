@@ -11,7 +11,8 @@ class Database
 
     protected function connect()
     {
-        $this->conn = new PDO("mysql:host = $this->host; dbname = $this->db_name", $this->username, $this->password);
+        $this->conn = new PDO("mysql:host = $this->host; dbname = $this->db_name", 
+                              $this->username, $this->password);
         return $this->conn;
     }
 }
@@ -31,10 +32,10 @@ CREATE TABLE users (
     last_name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    department_id INT NOT NULL,
+    departments_id INT NOT NULL,
     role ENUM('requester', 'processor', 'admin') NOT NULL DEFAULT 'requester',
 
-    FOREIGN KEY (department_id) REFERENCES department(id)
+    FOREIGN KEY (departments_id) REFERENCES departments(id)
 );
 
 CREATE TABLE suppliers (
@@ -46,71 +47,71 @@ CREATE TABLE suppliers (
 
 CREATE TABLE purchase_orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    supplier_id INT NOT NULL,
-    processor_id INT NOT NULL,
+    suppliers_id INT NOT NULL,
+    processors_id INT NOT NULL,
     order_date DATETIME NOT NULL,
     received_date DATETIME,
     status ENUM('pending', 'received', 'cancelled') NOT NULL DEFAULT 'pending',
 
-    FOREIGN KEY (supplier_id) REFERENCES supplier(id)
+    FOREIGN KEY (suppliers_id) REFERENCES suppliers(id)
         ON UPDATE CASCADE,
-    FOREIGN KEY (processor_id) REFERENCES user(id)
+    FOREIGN KEY (processors_id) REFERENCES users(id)
         ON UPDATE CASCADE
 );
 
 CREATE TABLE requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    requester_id INT NOT NULL,
-    processor_id INT,
+    requesters_id INT NOT NULL,
+    processors_id INT,
     status ENUM('pending', 'approved', 'completed', 'denied') NOT NULL DEFAULT 'pending',
     request_date DATETIME NOT NULL,
     processed_date DATETIME,
 
-    FOREIGN KEY (requester_id) REFERENCES user(id)
+    FOREIGN KEY (requesters_id) REFERENCES users(id)
         ON UPDATE CASCADE,
-    FOREIGN KEY (processor_id) REFERENCES user(id)
+    FOREIGN KEY (processors_id) REFERENCES users(id)
         ON UPDATE CASCADE
 );
 
-CREATE TABLE supplies_categories (
+CREATE TABLE supply_categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE
 );
 
 CREATE TABLE supplies (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    supply_category_id INT NOT NULL,
+    supply_categories_id INT NOT NULL,
     name VARCHAR(50) UNIQUE NOT NULL,
     unit_of_supply VARCHAR(30) NOT NULL,
     price_per_unit DECIMAL(8, 2) NOT NULL,
     stock_quantity INT,
 
-    FOREIGN KEY (supply_category_id) REFERENCES supply_category(id)
+    FOREIGN KEY (supply_categories_id) REFERENCES supply_categories(id)
         ON UPDATE CASCADE
 );
 
 CREATE TABLE purchase_orders_supplies(
-    purchase_order_id INT NOT NULL,
-    supply_id INT NOT NULL,
+    purchase_orders_id INT NOT NULL,
+    supplies_id INT NOT NULL,
     supply_quantity INT NOT NULL CHECK (supply_quantity > 0),
     price_per_unit DECIMAL(8, 2) NOT NULL,
 
-    PRIMARY KEY (purchase_order_id, supply_id),
-    FOREIGN KEY (purchase_order_id) REFERENCES purchase_order(id)
+    PRIMARY KEY (purchase_orders_id, supplies_id),
+    FOREIGN KEY (purchase_orders_id) REFERENCES purchase_orders(id)
         ON UPDATE CASCADE,
-    FOREIGN KEY (supply_id) REFERENCES supply(id)
+    FOREIGN KEY (supplies_id) REFERENCES supplies(id)
         ON UPDATE CASCADE
 );
 
 CREATE TABLE request_supplies (
-    request_id INT NOT NULL,
-    supply_id INT NOT NULL,
+    requests_id INT NOT NULL,
+    supplies_id INT NOT NULL,
     supply_quantity INT NOT NULL CHECK (supply_quantity > 0),
 
-    PRIMARY KEY (request_id, supply_id),
-    FOREIGN KEY (request_id) REFERENCES request(id)
+    PRIMARY KEY (requests_id, supplies_id),
+    FOREIGN KEY (requests_id) REFERENCES requests(id)
         ON UPDATE CASCADE,
-    FOREIGN KEY (supply_id) REFERENCES supply(id)
+    FOREIGN KEY (supplies_id) REFERENCES supplies(id)
         ON UPDATE CASCADE
 );
 
