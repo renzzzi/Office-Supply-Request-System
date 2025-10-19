@@ -21,6 +21,26 @@ class Departments
 
         return $query->execute();
     }
+
+    public function getDepartmentById($departmentId)
+    {
+        $sql = "SELECT * FROM departments WHERE id = :id";
+
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":id", $departmentId);
+        $query->execute();
+
+        return $query->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getAllDepartments()
+    {
+        $sql = "SELECT * FROM departments";
+        $query = $this->pdo->prepare($sql);
+        $query->execute();
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 
 ?>

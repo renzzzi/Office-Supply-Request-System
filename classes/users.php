@@ -7,10 +7,11 @@ class Users
     private $pdo;
 
     public $id = "";
-    public $name = "";
+    public $first_name = "";
+    public $last_name = "";
     public $email = "";
-    public $department_id = "";
-    public $role = ""; // default 'requester'
+    public $password_hash = "";
+    public $departments_id = "";
 
     public function __construct(PDO $pdo)
     {
@@ -19,15 +20,34 @@ class Users
 
     public function addUser()
     {
-        $sql = "INSERT INTO user (name, email, department_id) 
-                VALUES (:name, :email, :department_id)";
+        $sql = "INSERT INTO users (first_name, last_name, email, password_hash, departments_id) 
+                VALUES (:first_name, :last_name, :email, :password_hash, :departments_id)";
 
         $query = $this->pdo->prepare($sql);
-        $query->bindParam(":name", $this->name);
+        $query->bindParam(":first_name", $this->first_name);
+        $query->bindParam(":last_name", $this->last_name);
         $query->bindParam(":email", $this->email);
-        $query->bindParam(":department_id", $this->department_id);
+        $query->bindParam(":password_hash", $this->password_hash);
+        $query->bindParam(":departments_id", $this->departments_id);
 
-        return $query->execute();
+        if ($query->execute())
+        {
+            return $this->pdo->lastInsertId();
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public function getAllUsers()
+    {
+        $sql = "SELECT * FROM users";
+
+        $query = $this->pdo->prepare($sql);
+        $query->execute();
+        
+        return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function getUserByEmail($userEmail)
@@ -38,7 +58,7 @@ class Users
         $query->bindParam(":email", $userEmail);
         $query->execute();
         
-        return $query->fetch();
+        return $query->fetch(PDO::FETCH_ASSOC);
     }
 }
 

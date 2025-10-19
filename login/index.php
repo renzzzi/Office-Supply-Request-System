@@ -3,8 +3,8 @@
 require_once "../classes/database.php";
 require_once "../classes/users.php";
 
-$database = new Database();
-$pdoConnection = $database->connect();
+
+$pdoConnection = (new Database())->connect();
 
 $userObj = new Users($pdoConnection);
 
