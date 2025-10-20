@@ -1,12 +1,15 @@
 <?php
 
+session_start();
 require_once "../classes/database.php";
 require_once "../classes/users.php";
+require_once "../classes/roles.php";
 
 
 $pdoConnection = (new Database())->connect();
 
 $userObj = new Users($pdoConnection);
+$roleObj = new Roles($pdoConnection);
 
 $userInput = [];
 $errors = [];
@@ -34,20 +37,30 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
     {
         $user = $userObj->getUserByEmail($userInput["email"]);
 
-        if ($user && password_verify($user["password"], $userInput["password"]))
+        if ($user && password_verify($userInput["password"], $user["password_hash"]))
         {
             session_regenerate_id(true);
             $_SESSION["user_id"] = $user["id"];
             $_SESSION["user_first_name"] = $user["first_name"];
-            $_SESSION["user_role"] = $user["role"];
+            $_SESSION["user_role"] = $roleObj->getRoleById($user["roles_id"])["name"];
 
-            header("Location: ");
+            if ($_SESSION["user_role"] === "Admin")
+            {
+                header("Location: ../admin");
+            }
+            else if ($_SESSION["user_role"] === "Processor")
+            {
+                header("Location: ../processor");
+            }
+            else if ($_SESSION["user_role"] === "Requester")
+            {
+                header("Location: ../requester");
+            }
             exit();
         }
         else
         {
             $errors["input"] = "Email or password is incorrect";
-            
         }
     }
 }

@@ -12,6 +12,7 @@ class Users
     public $email = "";
     public $password_hash = "";
     public $departments_id = "";
+    public $roles_id = "";
 
     public function __construct(PDO $pdo)
     {
@@ -20,24 +21,18 @@ class Users
 
     public function addUser()
     {
-        $sql = "INSERT INTO users (first_name, last_name, email, password_hash, departments_id) 
-                VALUES (:first_name, :last_name, :email, :password_hash, :departments_id)";
+        $sql = "INSERT INTO users (first_name, last_name, email, password_hash, departments_id, roles_id) 
+                VALUES (:first_name, :last_name, :email, :password_hash, :departments_id, :roles_id)";
 
         $query = $this->pdo->prepare($sql);
         $query->bindParam(":first_name", $this->first_name);
-        $query->bindParam(":last_name", $this->last_name);
+        $query->bindParam(":last_name", $this->last_name);  
         $query->bindParam(":email", $this->email);
         $query->bindParam(":password_hash", $this->password_hash);
         $query->bindParam(":departments_id", $this->departments_id);
+        $query->bindParam(":roles_id", $this->roles_id);
 
-        if ($query->execute())
-        {
-            return $this->pdo->lastInsertId();
-        }
-        else
-        {
-            return false;
-        }
+        return $query->execute();
     }
 
     public function getAllUsers()

@@ -132,19 +132,6 @@ CREATE TABLE request_supplies (
         ON DELETE RESTRICT
 );
 
-CREATE TABLE user_roles (
-    users_id INT NOT NULL,
-    roles_id INT NOT NULL,
-
-    PRIMARY KEY (users_id, roles_id),
-    FOREIGN KEY (users_id) REFERENCES users(id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    FOREIGN KEY (roles_id) REFERENCES roles(id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT
-);
-
 -- Seeding Initial Data
 
 INSERT INTO departments (name) VALUES

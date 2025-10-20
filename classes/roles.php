@@ -22,6 +22,16 @@ class Roles
         return $query->execute();
     }
 
+    public function getRoleById($roleId)
+    {
+        $sql = "SELECT * FROM roles WHERE id = :id";
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":id", $roleId);
+        $query->execute();
+
+        return $query->fetch(PDO::FETCH_ASSOC);
+    }
+
     public function getAllRoles()
     {
         $sql = "SELECT * FROM roles";

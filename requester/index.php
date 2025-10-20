@@ -4,7 +4,7 @@
 require_once "partials/header.php";
 
 // Main
-$page = $_GET["page"] ?? "view-system-activity";
+$page = $_GET["page"] ?? "dashboard";
 $pageToShow = "pages/" . $page . ".php";
 require_once $pageToShow;
 

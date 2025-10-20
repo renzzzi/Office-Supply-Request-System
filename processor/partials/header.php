@@ -1,6 +1,6 @@
 <?php
 
-session_start();
+session_start()
 
 ?>
 
@@ -9,20 +9,21 @@ session_start();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supply Desk | Admin</title>
+    <title>Supply Desk | Requester</title>
     <link rel="stylesheet" href="../assets/universal-style.css">
 </head>
 <body class="panel-body">
     <aside class="side-panel">
         <div class="logo-container">
-            <a href="index.php?page=inventory">Supply Desk</a>
+            <a href="index.php?page=reports">Supply Desk</a>
         </div>
         
         <nav class="side-navigation">
             <ul>
-                <li><a href="index.php?page=view-system-activity">View System Activity</a></li>
-                <li><a href="index.php?page=user-management">User Management</a></li>
-                <li><a href="index.php?page=system-database-configuration">System Database Configuration</a></li>
+                <li><a href="index.php?page=reports">Reports</a></li>
+                <li><a href="index.php?page=manage-requests">Manage Requests</a></li>
+                <li><a href="index.php?page=manage-purchase-orders">Manage Purchase Orders</a></li>
+                <li><a href="index.php?page=supply-inventory">Supply Inventory</a></li>
                 <li><a href="index.php?page=settings">Settings</a></li>
             </ul>
         </nav>
@@ -31,7 +32,7 @@ session_start();
     <div class="main-content-wrapper">
         <header class="top-bar">
             <div class="page-title">
-                <h1>Admin Panel</h1>
+                <h1>Processor Panel</h1>
             </div>
             <div>
                 <span>Welcome, <?= htmlspecialchars($_SESSION["user_first_name"]); ?></span>
