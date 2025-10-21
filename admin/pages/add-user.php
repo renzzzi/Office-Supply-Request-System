@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $userObj->roles_id = $_POST["role"];
 
     if ($userObj->addUser()) {
-        header("Location: index.php?page=users-panel");
+        header("Location: index.php?page=user-management");
         exit();
     } else {
         echo "<script>alert('Error adding user, please try again.');</script>";

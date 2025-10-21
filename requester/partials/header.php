@@ -11,6 +11,7 @@ session_start()
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Supply Desk | Requester</title>
     <link rel="stylesheet" href="../assets/universal-style.css">
+    <script src="../assets/modal.js" defer></script>
 </head>
 <body class="panel-body">
     <aside class="side-panel">
@@ -21,7 +22,6 @@ session_start()
         <nav class="side-navigation">
             <ul>
                 <li><a href="index.php?page=dashboard">Dashboard</a></li>
-                <li><a href="index.php?page=add-new-request">Add New Request</a></li>
                 <li><a href="index.php?page=my-requests">My Requests</a></li>
                 <li><a href="index.php?page=settings">Settings</a></li>
             </ul>
