@@ -4,7 +4,7 @@ USE supply_desk;
 -- Dropping Tables if they exist
 -- For quick database resets
 
-DROP TABLE IF EXISTS user_roles;
+DROP TABLE IF EXISTS department_inventory;
 DROP TABLE IF EXISTS request_supplies;
 DROP TABLE IF EXISTS purchase_orders_supplies;
 DROP TABLE IF EXISTS supplies;
@@ -96,7 +96,6 @@ CREATE TABLE supplies (
     name VARCHAR(50) UNIQUE NOT NULL,
     unit_of_supply VARCHAR(30) NOT NULL,
     price_per_unit DECIMAL(8, 2) NOT NULL,
-    stock_quantity INT,
 
     FOREIGN KEY (supply_categories_id) REFERENCES supply_categories(id)
         ON UPDATE CASCADE
@@ -130,13 +129,25 @@ CREATE TABLE request_supplies (
     FOREIGN KEY (supplies_id) REFERENCES supplies(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
+    );
+
+CREATE TABLE department_inventories (
+    departments_id INT NOT NULL,
+    supplies_id INT NOT NULL,
+    supply_quantity INT NOT NULL CHECK (supply_quantity > 0),
+
+    PRIMARY KEY (departments_id, supplies_id),
+    FOREIGN KEY (departments_id) REFERENCES departments(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    FOREIGN KEY (supplies_id) REFERENCES supplies(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
 );
 
 -- Seeding Initial Data
 
 INSERT INTO departments (name) VALUES
-('Human Resources'),
-('Finance'),
 ('IT'),
 ('Marketing'),
 ('Sales');
@@ -149,6 +160,4 @@ INSERT INTO roles (name) VALUES
 INSERT INTO supply_categories (name) VALUES 
 ('Writing Supplies'),
 ('Paper Products'),
-('Electronics'),
-('Equipment'),
-('Breakroom Supplies');
+('Electronics');
