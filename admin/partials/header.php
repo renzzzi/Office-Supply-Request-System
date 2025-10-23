@@ -11,6 +11,7 @@ session_start();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Supply Desk | Admin</title>
     <link rel="stylesheet" href="../assets/universal-style.css">
+    <script src="../assets/modal.js" defer></script>
 </head>
 <body class="panel-body">
     <aside class="side-panel">

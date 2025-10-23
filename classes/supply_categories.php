@@ -14,13 +14,26 @@ class SupplyCategories
 
     public function addSupplyCategory()
     {
-        $sql = "INSERT INTO supply_category (name) VALUES (:name)";
-
+        $sql = "INSERT INTO supply_categories (name) VALUES (:name)";
         $query = $this->pdo->prepare($sql);
         $query->bindParam(":name", $this->name);
-
         return $query->execute();
     }
-}
 
-?>
+    public function getAllSupplyCategories()
+    {
+        $sql = "SELECT * FROM supply_categories ORDER BY name ASC";
+        $query = $this->pdo->prepare($sql);
+        $query->execute();
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getSupplyCategoryById($categoryId)
+    {
+        $sql = "SELECT * FROM supply_categories WHERE id = :id";
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":id", $categoryId);
+        $query->execute();
+        return $query->fetch(PDO::FETCH_ASSOC);
+    }
+}

@@ -7,7 +7,7 @@ class Supplies
     private $pdo;
 
     public $id = "";
-    public $category_id = "";
+    public $supply_categories_id = "";
     public $name = "";
     public $unit_of_supply = ""; // e.g box, piece, pack, ream
     public $price_per_unit = "";
@@ -20,48 +20,52 @@ class Supplies
     
     public function addSupply()
     {
-        $sql = "INSERT INTO supply (category_id, name, unit_of_supply, price_per_unit, stock_quantity) 
-                VALUES (:category_id, :name, :unit_of_supply, :price_per_unit, :stock_quantity)";
-        
+    $sql = "INSERT INTO supplies (supply_categories_id, name, unit_of_supply, price_per_unit) 
+        VALUES (:supply_categories_id, :name, :unit_of_supply, :price_per_unit)";
+
         $query = $this->pdo->prepare($sql);
         $query->bindParam(":name", $this->name);
-        $query->bindParam(":category_id", $this->category_id);
+        $query->bindParam(":supply_categories_id", $this->supply_categories_id);
         $query->bindParam(":unit_of_supply", $this->unit_of_supply);
         $query->bindParam(":price_per_unit", $this->price_per_unit);
-        $query->bindParam(":stock_quantity", $this->stock_quantity);
         
         return $query->execute();
     }
 
-    public function viewSupply($search = "")
+    public function viewAllSupply($search = "")
     {
-        $sql = "SELECT * FROM supply WHERE name LIKE CONCAT('%', :search, '%') 
-                ORDER BY name ASC";
+    $sql = "SELECT * FROM supplies WHERE name LIKE CONCAT('%', :search, '%') 
+            ORDER BY name ASC";
         
         $query = $this->pdo->prepare($sql);
         $query->bindParam(":search", $search);
-
-        if ($query->execute()) 
-        {
-            return $query->fetchAll(PDO::FETCH_ASSOC);
-        } 
-        else 
-        {
-            return null;
-        }
+        $query->execute();
+        
+        return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function searchSupplyNames($search = "")
+    {
+        $sql = "SELECT name FROM supplies WHERE name LIKE CONCAT('%', :search, '%')";
+        
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":search", $search);
+        $query->execute();
+
+        return $query->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    //broken
     public function editSupply($supplyId = "")
     {
-        $sql = "UPDATE supply SET category_id = :category_id, name = :name, unit_of_supply = :unit_of_supply, price_per_unit = :price_per_unit, stock_quantity = :stock_quantity
+        $sql = "UPDATE supplies SET supply_categories_id = :supply_categories_id, name = :name, unit_of_supply = :unit_of_supply, price_per_unit = :price_per_unit
                 WHERE id = :id";
 
         $query = $this->pdo->prepare($sql);
         $query->bindParam(":name", $name);
-        $query->bindParam(":category_id", $category_id);
+        $query->bindParam(":supply_categories_id", $supply_categories_id);
         $query->bindParam(":unit_of_supply", $unit_of_supply);
         $query->bindParam(":price_per_unit", $price_per_unit);
-        $query->bindParam(":stock_quantity", $stock_quantity);
         $query->bindParam(":id", $supplyId);
 
         return $query->execute();
