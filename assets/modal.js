@@ -11,8 +11,8 @@ closeButton.addEventListener('click', () => {
     modalContainer.classList.remove('show');
 });
 
-modalContainer.addEventListener('click', (event) => {
-    if (event.target === modalContainer) {
+modalContainer.addEventListener('click', (e) => {
+    if (e.target === modalContainer) {
         modalContainer.classList.remove('show');
     }
 });

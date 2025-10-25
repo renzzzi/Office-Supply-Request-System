@@ -1,9 +1,9 @@
 <?php
 
-require_once "../classes/database.php";
-require_once "../classes/users.php";
-require_once "../classes/departments.php";
-require_once "../classes/roles.php";
+require_once __DIR__ . "/../../classes/database.php";
+require_once __DIR__ . "/../../classes/users.php";
+require_once __DIR__ . "/../../classes/departments.php";
+require_once __DIR__ . "/../../classes/roles.php";
 
 $pdoConnection = (new Database())->connect();
 $userObj = new Users($pdoConnection);
@@ -54,7 +54,7 @@ $users = $userObj->getAllUsers();
                 <label for="department">Department</label>
                 <select name="department" id="department" required>
                     <?php foreach ($departmentObj->getAllDepartments() as $department) { ?>
-                        <option value="<?= $department["id"]; ?>"><?= $department["name"]; ?></option>
+                        <option value="<?= $department["    id"]; ?>"><?= $department["name"]; ?></option>
                     <?php } ?>
                 </select>
             </div>
@@ -75,26 +75,28 @@ $users = $userObj->getAllUsers();
 <table border="1" class="user-table">
     <thead>
         <tr>
-            <th scope="col">User ID</th>
-            <th scope="col">Name</th>
-            <th scope="col">Email</th>
-            <th scope="col">Department</th>
-            <th scope="col">Role</th>
+            <th>User ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Role</th>
         </tr>
     </thead>
     <tbody>
-        <?php
-        foreach ($users as $user) 
-        {
-            echo "<tr>";
-            echo "<td>" . htmlspecialchars($user["id"]) . "</td>";
-            echo "<td>" . htmlspecialchars($user["first_name"]) . " " . htmlspecialchars($user["last_name"]) . "</td>";
-            echo "<td>" . htmlspecialchars($user["email"]) . "</td>";
-            echo "<td>" . htmlspecialchars($departmentObj->getDepartmentById($user["departments_id"])["name"]) . "</td>";
-            echo "<td>" . htmlspecialchars($roleObj->getRoleById($user["roles_id"])["name"]) . "</td>";
-            echo "</tr>";
-        }
-        ?>
+        <?php foreach ($users as $user): ?>
+            <?php
+                $fullName = $user["first_name"] . " " . $user["last_name"];
+                $departmentName = $departmentObj->getDepartmentById($user["departments_id"])["name"];
+                $roleName = $roleObj->getRoleById($user["roles_id"])["name"];
+            ?>
+            <tr>
+                <td><?= htmlspecialchars($user["id"]) ?></td>
+                <td><?= htmlspecialchars($fullName) ?></td>
+                <td><?= htmlspecialchars($user["email"]) ?></td>
+                <td><?= htmlspecialchars($departmentName) ?></td>
+                <td><?= htmlspecialchars($roleName) ?></td>
+            </tr>
+        <?php endforeach; ?>
     </tbody>
 </table>
 <span class="user-count">Total Users: <?= count($users) ?></span>

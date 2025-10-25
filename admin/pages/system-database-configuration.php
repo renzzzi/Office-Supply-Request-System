@@ -1,8 +1,8 @@
 <?php
 
-require_once '../classes/database.php';
-require_once '../classes/supplies.php';
-require_once '../classes/supply_categories.php';
+require_once __DIR__ . "/../../classes/database.php";
+require_once __DIR__ . "/../../classes/supplies.php";
+require_once __DIR__ . "/../../classes/supply_categories.php";
 
 $pdoConnection = (new Database())->connect();
 $supplyObj = new Supplies($pdoConnection);

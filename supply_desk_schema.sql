@@ -73,11 +73,15 @@ CREATE TABLE requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     requesters_id INT NOT NULL,
     processors_id INT,
-    status ENUM('pending', 'in_progress', 'completed', 'denied') NOT NULL DEFAULT 'pending',
+    departments_id INT NOT NULL,
     request_date DATETIME NOT NULL,
     processed_date DATETIME,
+    status ENUM('pending', 'in_progress', 'completed', 'denied') NOT NULL DEFAULT 'pending',
 
     FOREIGN KEY (requesters_id) REFERENCES users(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    FOREIGN KEY (departments_id) REFERENCES departments(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
     FOREIGN KEY (processors_id) REFERENCES users(id)

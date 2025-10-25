@@ -71,7 +71,14 @@ class Supplies
         return $query->execute();
     }
 
-    
+    public function getSupplyByName($name = "")
+    {
+        $sql = "SELECT id, name FROM supplies WHERE name = :name LIMIT 1";
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":name", $name);
+        $query->execute();
+        return $query->fetch(PDO::FETCH_ASSOC);
+    }
 }
 
 

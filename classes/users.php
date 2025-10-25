@@ -55,6 +55,17 @@ class Users
         
         return $query->fetch(PDO::FETCH_ASSOC);
     }
+
+    public function getUserById($userId)
+    {
+        $sql = "SELECT * FROM users WHERE id = :id";
+
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":id", $userId);
+        $query->execute();
+        
+        return $query->fetch(PDO::FETCH_ASSOC);
+    }
 }
 
 ?>

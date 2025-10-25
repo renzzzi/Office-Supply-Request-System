@@ -6,8 +6,8 @@ class RequestSupplies
 {
     private $pdo;
 
-    public $request_id = "";
-    public $supply_id = "";
+    public $requests_id = "";
+    public $supplies_id = "";
     public $supply_quantity = "";
 
     public function __construct(PDO $pdo)
@@ -17,12 +17,12 @@ class RequestSupplies
 
     public function addRequestSupply()
     {
-        $sql = "INSERT INTO request_supply (request_id, supply_id, supply_quantity) 
-                VALUES (:request_id, :supply_id, :supply_quantity)";
+        $sql = "INSERT INTO request_supplies (requests_id, supplies_id, supply_quantity) 
+                VALUES (:requests_id, :supplies_id, :supply_quantity)";
 
         $query = $this->pdo->prepare($sql);
-        $query->bindParam(":request_id", $this->request_id);
-        $query->bindParam(":supply_id", $this->supply_id);
+        $query->bindParam(":requests_id", $this->requests_id);
+        $query->bindParam(":supplies_id", $this->supplies_id);
         $query->bindParam(":supply_quantity", $this->supply_quantity);
 
         return $query->execute();

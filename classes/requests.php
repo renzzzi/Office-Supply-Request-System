@@ -7,9 +7,9 @@ class Requests
     private $pdo;
 
     public $id = "";
-    public $requester_id = "";
-    public $processor_id = ""; // nullable
-    public $department_id = "";
+    public $requesters_id = "";
+    public $processors_id = ""; // nullable
+    public $departments_id = "";
     public $status = ""; // default 'pending'
     public $request_date = "";
     public $processed_date = ""; // nullable
@@ -21,26 +21,51 @@ class Requests
 
     public function addRequest()
     {
-        $sql = "INSERT INTO request (requester_id, department_id, request_date) 
-                VALUES (:requester_id, :department_id, :request_date)";
+        $sql = "INSERT INTO requests (requesters_id, departments_id, request_date) 
+                VALUES (:requesters_id, :departments_id, :request_date)";
 
         $query = $this->pdo->prepare($sql);
-        $query->bindParam(":requester_id", $this->requester_id);
-        $query->bindParam(":department_id", $this->department_id);
+        $query->bindParam(":requesters_id", $this->requesters_id);
+        $query->bindParam(":departments_id", $this->departments_id);
         $query->bindParam(":request_date", $this->request_date);
 
-        return $query->execute();
+        if ($query->execute()) {
+            return $this->pdo->lastInsertId();
+        } else {
+            return false;
+        }
     }
 
     public function modifyRequestStatus($requestId = "", $newStatus = "pending")
     {
-        $sql = "UPDATE request SET status = :status WHERE id = :id";
+        $sql = "UPDATE requests SET status = :status WHERE id = :id";
 
         $query = $this->pdo->prepare($sql);
         $query->bindParam(":status", $newStatus);
         $query->bindParam(":id", $requestId);
 
         return $query->execute();
+    }
+
+    public function getAllRequests()
+    {
+        $sql = "SELECT * FROM requests ORDER BY request_date DESC";
+
+        $query = $this->pdo->prepare($sql);
+        $query->execute();
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getAllRequestsByRequesterId($requesterId = "")
+    {
+        $sql = "SELECT * FROM requests WHERE requesters_id = :requesters_id ORDER BY request_date DESC";
+
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":requesters_id", $requesterId);
+        $query->execute();
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 
