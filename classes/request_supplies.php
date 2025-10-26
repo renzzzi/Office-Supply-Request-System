@@ -27,6 +27,52 @@ class RequestSupplies
 
         return $query->execute();
     }
+
+    public function getSupplyCountByRequestId($requestId = "")
+    {
+        $sql = "SELECT COUNT(*) as supply_count FROM request_supplies 
+                WHERE requests_id = :requests_id";
+
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":requests_id", $requestId);
+        $query->execute();
+
+        $result = $query->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result["supply_count"] : 0;
+    }
+
+    public function getAllSuppliesByRequestId($requestId = "")
+    {
+        $sql = "SELECT s.name, rs.supply_quantity 
+                FROM request_supplies rs
+                JOIN supplies s ON rs.supplies_id = s.id
+                WHERE rs.requests_id = :requests_id
+                ORDER BY s.name ASC";
+        
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":requests_id", $requestId);
+        $query->execute();
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    // Returns up to 2 supplies for summary display
+    public function getSupplySummaryByRequestId($requestId = "")
+    {
+        $sql = "SELECT s.name, rs.supply_quantity 
+                FROM request_supplies rs
+                JOIN supplies s ON rs.supplies_id = s.id
+                WHERE rs.requests_id = :requests_id 
+                LIMIT 2";
+        
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":requests_id", $requestId);
+        $query->execute();
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    
 }
 
 ?>

@@ -79,6 +79,18 @@ class Supplies
         $query->execute();
         return $query->fetch(PDO::FETCH_ASSOC);
     }
+
+    public function getSupplyNameById($supplyId = "")
+    {
+        $sql = "SELECT name FROM supplies WHERE id = :id";
+
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":id", $supplyId);
+        $query->execute();
+        $result = $query->fetch(PDO::FETCH_ASSOC);
+        
+        return $result ? $result["name"] : "";
+    }
 }
 
 

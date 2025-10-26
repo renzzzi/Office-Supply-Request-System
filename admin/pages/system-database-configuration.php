@@ -50,7 +50,7 @@ $supplies = $supplyObj->viewAllSupply();
                 <label for="price_per_unit">Price Per Unit</label>
                 <input type="number" step="0.01" id="price_per_unit" name="price_per_unit" required>
             </div>
-            <input type="submit" value="Add Supply" class="submit-button">
+            <button type="submit" class="submit-button">Add Supply</button>
         </form>
     </div>
 </div>

@@ -66,7 +66,7 @@ $users = $userObj->getAllUsers();
                     <?php } ?>
                 </select>
             </div>
-            <input type="submit" value="Add User" class="submit-button">
+            <button type="submit" class="submit-button">Add User</button>
         </form>
     </div>
 </div>

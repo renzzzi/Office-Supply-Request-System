@@ -92,7 +92,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <div id="hidden-inputs-container">
                 <!-- Hidden inputs for supplies will appear here -->
             </div>
-            <input type="submit" value="Submit Request" class="submit-request-button">
+            <button type="submit" class="submit-request-button">Submit Request</button>
         </form>
     </div>
 </div>

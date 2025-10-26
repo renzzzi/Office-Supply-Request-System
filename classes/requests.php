@@ -47,6 +47,28 @@ class Requests
         return $query->execute();
     }
 
+    public function updateProcessedDate($requestId = "")
+    {
+        $sql = "UPDATE requests SET processed_date = :processed_date WHERE id = :id";
+
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":processed_date", date('Y-m-d H:i:s'));
+        $query->bindParam(":id", $requestId);
+
+        return $query->execute();
+    }
+
+    public function setProcessorId($requestId = "", $processorId = "")
+    {
+        $sql = "UPDATE requests SET processors_id = :processors_id WHERE id = :id";
+
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":processors_id", $processorId);
+        $query->bindParam(":id", $requestId);
+
+        return $query->execute();
+    }
+
     public function getAllRequests()
     {
         $sql = "SELECT * FROM requests ORDER BY request_date DESC";
@@ -63,6 +85,27 @@ class Requests
 
         $query = $this->pdo->prepare($sql);
         $query->bindParam(":requesters_id", $requesterId);
+        $query->execute();
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getAllUnclaimedRequests()
+    {
+        $sql = "SELECT * FROM requests WHERE processors_id IS NULL ORDER BY request_date DESC";
+
+        $query = $this->pdo->prepare($sql);
+        $query->execute();
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getAllClaimedRequestsByProcessorId($processorId = "")
+    {
+        $sql = "SELECT * FROM requests WHERE processors_id = :processors_id ORDER BY request_date DESC";
+
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":processors_id", $processorId);
         $query->execute();
 
         return $query->fetchAll(PDO::FETCH_ASSOC);

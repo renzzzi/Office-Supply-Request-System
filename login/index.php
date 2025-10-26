@@ -1,9 +1,9 @@
 <?php
 
 session_start();
-require_once "../classes/database.php";
-require_once "../classes/users.php";
-require_once "../classes/roles.php";
+require_once __DIR__ . "/../classes/database.php";
+require_once __DIR__ . "/../classes/users.php";
+require_once __DIR__ . "/../classes/roles.php";
 
 
 $pdoConnection = (new Database())->connect();
@@ -44,6 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
             $_SESSION["user_first_name"] = $user["first_name"];
             $_SESSION["user_role"] = $roleObj->getRoleById($user["roles_id"])["name"];
 
+            // Role check
             if ($_SESSION["user_role"] === "Admin")
             {
                 header("Location: ../admin");
