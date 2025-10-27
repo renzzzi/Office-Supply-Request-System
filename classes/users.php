@@ -42,7 +42,7 @@ class Users
         $query = $this->pdo->prepare($sql);
         $query->execute();
         
-        return $query->fetchAll(PDO::FETCH_ASSOC);
+        return $query->fetchAll();
     }
 
     public function getUserByEmail($userEmail)
@@ -53,7 +53,7 @@ class Users
         $query->bindParam(":email", $userEmail);
         $query->execute();
         
-        return $query->fetch(PDO::FETCH_ASSOC);
+        return $query->fetch();
     }
 
     public function getUserById($userId)
@@ -64,7 +64,7 @@ class Users
         $query->bindParam(":id", $userId);
         $query->execute();
         
-        return $query->fetch(PDO::FETCH_ASSOC);
+        return $query->fetch();
     }
 }
 

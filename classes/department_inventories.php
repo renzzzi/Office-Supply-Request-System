@@ -34,7 +34,7 @@ class DepartmentInventories
         $query->bindParam(":departments_id", $departmentId, PDO::PARAM_INT);
         
         $query->execute();
-        return $query->fetchAll(PDO::FETCH_ASSOC);
+        return $query->fetchAll();
     }
 }
 

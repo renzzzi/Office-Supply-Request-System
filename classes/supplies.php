@@ -41,7 +41,7 @@ class Supplies
         $query->bindParam(":search", $search);
         $query->execute();
         
-        return $query->fetchAll(PDO::FETCH_ASSOC);
+        return $query->fetchAll();
     }
 
     public function searchSupplyNames($search = "")
@@ -77,7 +77,7 @@ class Supplies
         $query = $this->pdo->prepare($sql);
         $query->bindParam(":name", $name);
         $query->execute();
-        return $query->fetch(PDO::FETCH_ASSOC);
+        return $query->fetch();
     }
 
     public function getSupplyNameById($supplyId = "")
@@ -87,7 +87,7 @@ class Supplies
         $query = $this->pdo->prepare($sql);
         $query->bindParam(":id", $supplyId);
         $query->execute();
-        $result = $query->fetch(PDO::FETCH_ASSOC);
+        $result = $query->fetch();
         
         return $result ? $result["name"] : "";
     }

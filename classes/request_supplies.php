@@ -37,7 +37,7 @@ class RequestSupplies
         $query->bindParam(":requests_id", $requestId);
         $query->execute();
 
-        $result = $query->fetch(PDO::FETCH_ASSOC);
+        $result = $query->fetch();
         return $result ? $result["supply_count"] : 0;
     }
 
@@ -53,7 +53,7 @@ class RequestSupplies
         $query->bindParam(":requests_id", $requestId);
         $query->execute();
 
-        return $query->fetchAll(PDO::FETCH_ASSOC);
+        return $query->fetchAll();
     }
 
     // Returns up to 2 supplies for summary display
@@ -69,7 +69,7 @@ class RequestSupplies
         $query->bindParam(":requests_id", $requestId);
         $query->execute();
 
-        return $query->fetchAll(PDO::FETCH_ASSOC);
+        return $query->fetchAll();
     }
 
     

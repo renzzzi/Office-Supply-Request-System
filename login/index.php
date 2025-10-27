@@ -36,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
     if (empty(array_filter($errors)))
     {
         $user = $userObj->getUserByEmail($userInput["email"]);
-
+        
         if ($user && password_verify($userInput["password"], $user["password_hash"]))
         {
             session_regenerate_id(true);

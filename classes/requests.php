@@ -76,7 +76,7 @@ class Requests
         $query = $this->pdo->prepare($sql);
         $query->execute();
 
-        return $query->fetchAll(PDO::FETCH_ASSOC);
+        return $query->fetchAll();
     }
 
     public function getAllRequestsByRequesterId($requesterId = "")
@@ -87,7 +87,7 @@ class Requests
         $query->bindParam(":requesters_id", $requesterId);
         $query->execute();
 
-        return $query->fetchAll(PDO::FETCH_ASSOC);
+        return $query->fetchAll();
     }
 
     public function getAllUnclaimedRequests()
@@ -97,7 +97,7 @@ class Requests
         $query = $this->pdo->prepare($sql);
         $query->execute();
 
-        return $query->fetchAll(PDO::FETCH_ASSOC);
+        return $query->fetchAll();
     }
 
     public function getAllClaimedRequestsByProcessorId($processorId = "")
@@ -109,7 +109,7 @@ class Requests
         $query->bindParam(":processors_id", $processorId);
         $query->execute();
 
-        return $query->fetchAll(PDO::FETCH_ASSOC);
+        return $query->fetchAll();
     }
 
     public function getAllCompletedRequestsByProcessorId($processorId = "")
@@ -121,7 +121,7 @@ class Requests
         $query->bindParam(":processors_id", $processorId);
         $query->execute();
 
-        return $query->fetchAll(PDO::FETCH_ASSOC);
+        return $query->fetchAll();
     }
 
     public function getAllDeniedRequestsByProcessorId($processorId = "")
@@ -133,7 +133,7 @@ class Requests
         $query->bindParam(":processors_id", $processorId);
         $query->execute();
 
-        return $query->fetchAll(PDO::FETCH_ASSOC);
+        return $query->fetchAll();
     }
 }
 

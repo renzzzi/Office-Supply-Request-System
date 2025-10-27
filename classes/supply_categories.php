@@ -25,7 +25,7 @@ class SupplyCategories
         $sql = "SELECT * FROM supply_categories ORDER BY name ASC";
         $query = $this->pdo->prepare($sql);
         $query->execute();
-        return $query->fetchAll(PDO::FETCH_ASSOC);
+        return $query->fetchAll();
     }
 
     public function getSupplyCategoryById($categoryId)
@@ -34,6 +34,6 @@ class SupplyCategories
         $query = $this->pdo->prepare($sql);
         $query->bindParam(":id", $categoryId);
         $query->execute();
-        return $query->fetch(PDO::FETCH_ASSOC);
+        return $query->fetch();
     }
 }

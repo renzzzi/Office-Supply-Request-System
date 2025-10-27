@@ -29,7 +29,7 @@ class Roles
         $query->bindParam(":id", $roleId);
         $query->execute();
 
-        return $query->fetch(PDO::FETCH_ASSOC);
+        return $query->fetch();
     }
 
     public function getAllRoles()
@@ -38,7 +38,7 @@ class Roles
         $query = $this->pdo->prepare($sql);
         $query->execute();
 
-        return $query->fetchAll(PDO::FETCH_ASSOC);
+        return $query->fetchAll();
     }
 }
 
