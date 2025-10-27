@@ -1,9 +1,3 @@
-<?php
-
-session_start()
-
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,7 +32,7 @@ session_start()
             </div>
             <div class="user-actions">
                 <a href="#">Switch Account</a>
-                <a href="../login">Logout</a>
+                <a href="../login/logout.php">Logout</a>
             </div>
         </header>
         <main class="content-area">
