@@ -2,7 +2,7 @@
 
 session_start();
 
-if (!isset($_SESSION["user_id"]) || $_SESSION["user_role"] !== "processor") 
+if (!isset($_SESSION["user_id"]) || $_SESSION["user_role"] !== "Processor") 
 {
     header("Location: ../login");
     exit();
