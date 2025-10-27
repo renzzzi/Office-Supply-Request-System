@@ -92,8 +92,8 @@ class Requests
 
     public function getAllUnclaimedRequests()
     {
-        $sql = "SELECT * FROM requests WHERE processors_id IS NULL ORDER BY request_date DESC";
-
+        $sql = "SELECT * FROM requests WHERE status = 'pending' 
+                ORDER BY request_date DESC";
         $query = $this->pdo->prepare($sql);
         $query->execute();
 
@@ -102,7 +102,32 @@ class Requests
 
     public function getAllClaimedRequestsByProcessorId($processorId = "")
     {
-        $sql = "SELECT * FROM requests WHERE processors_id = :processors_id ORDER BY request_date DESC";
+        $sql = "SELECT * FROM requests WHERE processors_id = :processors_id 
+                AND status = 'in_progress' ORDER BY request_date DESC";
+
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":processors_id", $processorId);
+        $query->execute();
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getAllCompletedRequestsByProcessorId($processorId = "")
+    {
+        $sql = "SELECT * FROM requests WHERE processors_id = :processors_id 
+                AND status = 'completed' ORDER BY request_date DESC";
+        
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":processors_id", $processorId);
+        $query->execute();
+
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getAllDeniedRequestsByProcessorId($processorId = "")
+    {
+        $sql = "SELECT * FROM requests WHERE processors_id = :processors_id 
+                AND status = 'denied' ORDER BY request_date DESC";
 
         $query = $this->pdo->prepare($sql);
         $query->bindParam(":processors_id", $processorId);
