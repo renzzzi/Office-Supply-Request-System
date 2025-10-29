@@ -30,7 +30,6 @@
                 <span>Welcome, <?= htmlspecialchars($_SESSION["user_first_name"]); ?></span>
             </div>
             <div class="user-actions">
-                <a href="#">Switch Account</a>
                 <a href="../login/logout.php">Logout</a>
             </div>
         </header>
