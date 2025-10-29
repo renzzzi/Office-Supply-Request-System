@@ -4,16 +4,11 @@ USE supply_desk;
 -- Dropping Tables if they exist
 -- For quick database resets
 
-DROP TABLE IF EXISTS department_inventory;
 DROP TABLE IF EXISTS request_supplies;
-DROP TABLE IF EXISTS purchase_orders_supplies;
 DROP TABLE IF EXISTS supplies;
 DROP TABLE IF EXISTS supply_categories;
 DROP TABLE IF EXISTS requests;
-DROP TABLE IF EXISTS purchase_orders;
-DROP TABLE IF EXISTS suppliers;
 DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS roles;
 DROP TABLE IF EXISTS departments;
 
 -- Creating Tables
@@ -23,11 +18,6 @@ CREATE TABLE departments (
     name VARCHAR(100) NOT NULL UNIQUE
 );
 
-CREATE TABLE roles (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(50) NOT NULL UNIQUE
-);
-
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     first_name VARCHAR(100) NOT NULL,
@@ -35,36 +25,9 @@ CREATE TABLE users (
     email VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     departments_id INT NOT NULL,
-    roles_id INT NOT NULL DEFAULT 1,
-    status ENUM('active', 'inactive', 'removed') NOT NULL DEFAULT 'active',
+    roles ENUM('Requester', 'Processor', 'Admin') NOT NULL DEFAULT 'Requester',
 
     FOREIGN KEY (departments_id) REFERENCES departments(id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    FOREIGN KEY (roles_id) REFERENCES roles(id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT
-);
-
-CREATE TABLE suppliers (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    company_name VARCHAR(100) NOT NULL,
-    contact_person VARCHAR(100) NOT NULL,
-    contact_email VARCHAR(100) NOT NULL UNIQUE
-);
-
-CREATE TABLE purchase_orders (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    suppliers_id INT NOT NULL,
-    processors_id INT NOT NULL,
-    order_date DATETIME NOT NULL,
-    received_date DATETIME,
-    status ENUM('pending', 'received', 'cancelled') NOT NULL DEFAULT 'pending',
-
-    FOREIGN KEY (suppliers_id) REFERENCES suppliers(id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    FOREIGN KEY (processors_id) REFERENCES users(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
@@ -74,9 +37,12 @@ CREATE TABLE requests (
     requesters_id INT NOT NULL,
     processors_id INT,
     departments_id INT NOT NULL,
-    request_date DATETIME NOT NULL,
-    processed_date DATETIME,
-    status ENUM('pending', 'in_progress', 'completed', 'denied') NOT NULL DEFAULT 'pending',
+    requested_date DATETIME NOT NULL,
+    claimed_date DATETIME,
+    completed_date DATETIME,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    status ENUM('Pending', 'Prepared', 'Released', 'Denied') NOT NULL DEFAULT 'Pending',
+    remarks TEXT,
 
     FOREIGN KEY (requesters_id) REFERENCES users(id)
         ON UPDATE CASCADE
@@ -100,23 +66,9 @@ CREATE TABLE supplies (
     name VARCHAR(50) UNIQUE NOT NULL,
     unit_of_supply VARCHAR(30) NOT NULL,
     price_per_unit DECIMAL(8, 2) NOT NULL,
+    stock_quantity INT NOT NULL CHECK (stock_quantity >= 0),
 
     FOREIGN KEY (supply_categories_id) REFERENCES supply_categories(id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT
-);
-
-CREATE TABLE purchase_orders_supplies(
-    purchase_orders_id INT NOT NULL,
-    supplies_id INT NOT NULL,
-    supply_quantity INT NOT NULL CHECK (supply_quantity > 0),
-    price_per_unit DECIMAL(8, 2) NOT NULL,
-
-    PRIMARY KEY (purchase_orders_id, supplies_id),
-    FOREIGN KEY (purchase_orders_id) REFERENCES purchase_orders(id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    FOREIGN KEY (supplies_id) REFERENCES supplies(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
@@ -135,20 +87,6 @@ CREATE TABLE request_supplies (
         ON DELETE RESTRICT
     );
 
-CREATE TABLE department_inventories (
-    departments_id INT NOT NULL,
-    supplies_id INT NOT NULL,
-    supply_quantity INT NOT NULL CHECK (supply_quantity > 0),
-
-    PRIMARY KEY (departments_id, supplies_id),
-    FOREIGN KEY (departments_id) REFERENCES departments(id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    FOREIGN KEY (supplies_id) REFERENCES supplies(id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT
-);
-
 -- Seeding Initial Data
 
 INSERT INTO departments (name) VALUES
@@ -156,12 +94,12 @@ INSERT INTO departments (name) VALUES
 ('Marketing'),
 ('Sales');
 
-INSERT INTO roles (name) VALUES 
-('Requester'),
-('Processor'),
-('Admin');
-
 INSERT INTO supply_categories (name) VALUES 
 ('Writing Supplies'),
 ('Paper Products'),
 ('Electronics');
+
+INSERT INTO users (first_name, last_name, email, password_hash, departments_id, roles) VALUES
+('re', 're', 're@re.re', '$2y$10$Mc7x5V7o5griHt9ddJDu6e/FDslFoAjMdN2fgDdEoethCZd4plQfW', 1, 'Requester'),
+('pr', 'pr', 'pr@pr.pr', '$2y$10$1sTu0XqSQFtQLh6qCsMPY.3F0eP50879l9Yw46Bxgd5J48Og98u5W', 2, 'Processor'),
+('ad', 'ad', 'ad@ad.ad', '$2y$10$Jwy6bUyLhsIKyjoq25hrSeoLOuFsdIrMQFomGw247x6A3wMwArc2S', 3, 'Admin');

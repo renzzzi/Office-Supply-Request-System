@@ -54,7 +54,7 @@ $users = $userObj->getAllUsers();
                 <label for="department">Department</label>
                 <select name="department" id="department" required>
                     <?php foreach ($departmentObj->getAllDepartments() as $department) { ?>
-                        <option value="<?= $department["    id"]; ?>"><?= $department["name"]; ?></option>
+                        <option value="<?= $department["id"]; ?>"><?= $department["name"]; ?></option>
                     <?php } ?>
                 </select>
             </div>
