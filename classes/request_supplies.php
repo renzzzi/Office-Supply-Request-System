@@ -28,6 +28,31 @@ class RequestSupplies
         return $query->execute();
     }
 
+    public function updateSupplyQuantity($requestId, $supplyId, $newQuantity)
+    {
+        $sql = "UPDATE request_supplies SET supply_quantity = :quantity 
+                WHERE requests_id = :request_id AND supplies_id = :supply_id";
+        $query = $this->pdo->prepare($sql);
+        
+        return $query->execute([
+            ':quantity' => $newQuantity,
+            ':request_id' => $requestId,
+            ':supply_id' => $supplyId
+        ]);
+    }
+
+    public function removeSupplyFromRequest($requestId, $supplyId)
+    {
+        $sql = "DELETE FROM request_supplies 
+                WHERE requests_id = :request_id AND supplies_id = :supply_id";
+        $query = $this->pdo->prepare($sql);
+
+        return $query->execute([
+            ':request_id' => $requestId,
+            ':supply_id' => $supplyId
+        ]);
+    }
+
     public function getSupplyCountByRequestId($requestId = "")
     {
         $sql = "SELECT COUNT(*) as supply_count FROM request_supplies 
@@ -72,7 +97,17 @@ class RequestSupplies
         return $query->fetchAll();
     }
 
-    
+    public function getSuppliesByRequestId($requestId)
+    {
+        $sql = "SELECT rs.supplies_id, rs.supply_quantity, s.name 
+                FROM request_supplies rs
+                JOIN supplies s ON rs.supplies_id = s.id
+                WHERE rs.requests_id = :request_id";
+        
+        $query = $this->pdo->prepare($sql);
+        $query->execute([":request_id" => $requestId]);
+        return $query->fetchAll();
+    }
 }
 
 ?>

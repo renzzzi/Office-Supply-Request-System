@@ -26,8 +26,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
     } 
     elseif ($action === "ready") 
     {
+        $originalSupplies = $requestSuppliesObj->getSuppliesByRequestId($request_id);
+        $submittedSupplies = $_POST['supplies'] ?? [];
+
+        foreach ($originalSupplies as $original) {
+            $originalId = $original['supplies_id'];
+
+            if (isset($submittedSupplies[$originalId]['enabled'])) {
+                $newQuantity = $submittedSupplies[$originalId]['quantity'];
+                $requestSuppliesObj->updateSupplyQuantity($request_id, $originalId, $newQuantity);
+            } else {
+                $requestSuppliesObj->removeSupplyFromRequest($request_id, $originalId);
+            }
+        }
+
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Ready);
-    } 
+    }
     elseif ($action === "deny") 
     {
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Denied);
@@ -43,6 +57,28 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
 }
 
 ?>
+
+<!-- Prepare Supplies Modal -->
+<div class="modal-container" id="prepare-supplies-modal">
+    <div class="modal">
+        <span class="close-button">&times;</span>
+        <h2>Prepare Supplies for Request</h2>
+        <p>Uncheck items that are unavailable or adjust quantities as needed.</p>
+
+        <form action="index.php?page=manage-requests" method="POST" id="prepare-supplies-form">
+            <div id="prepare-supplies-list">
+                <!-- Supplies will be dynamically inserted here by JavaScript -->
+            </div>
+
+            <p id="prepare-form-error" class="error-message" style="display: none;"></p>
+
+            <input type="hidden" name="request_id" id="prepare-request-id">
+            <input type="hidden" name="action" value="ready">
+
+            <button type="submit" class="submit-button">Mark as Ready for Pickup</button>
+        </form>
+    </div>
+</div>
 
 <!-- Release Modal -->
 <div class="modal-container" id="release-modal">
@@ -210,9 +246,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                 <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
                 <td><?= htmlspecialchars($request["status"]) ?></td>
                 <td>
+                    <button type="button" class="open-button" 
+                    data-target="#prepare-supplies-modal" 
+                    data-request-id="<?= htmlspecialchars($request['id']) ?>">
+                        Finalize Supply List
+                    </button>
                     <form action="index.php?page=manage-requests" method="POST">
                         <input type="hidden" name="request_id" value="<?= htmlspecialchars($request["id"]) ?>">
-                        <button type="submit" name="action" value="ready">Ready For Pickup</button>
                         <button type="submit" name="action" value="deny">Deny</button>
                     </form>
                 </td>
@@ -444,3 +484,4 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
 </table>
 
 <script src="../assets/searchForUsers.js"></script>
+<script src="../assets/prepareSupplyListRequest.js"></script>
