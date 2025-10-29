@@ -47,9 +47,6 @@ CREATE TABLE requests (
     FOREIGN KEY (requesters_id) REFERENCES users(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
-    FOREIGN KEY (departments_id) REFERENCES departments(id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
     FOREIGN KEY (processors_id) REFERENCES users(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
