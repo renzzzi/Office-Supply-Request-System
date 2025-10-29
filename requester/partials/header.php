@@ -10,12 +10,11 @@
 <body class="panel-body">
     <aside class="side-panel">
         <div class="logo-container">
-            <a href="index.php?page=dashboard">Supply Desk</a>
+            <a href="index.php?page=my-requests">Supply Desk</a>
         </div>
         
         <nav class="side-navigation">
             <ul>
-                <li><a href="index.php?page=dashboard">Dashboard</a></li>
                 <li><a href="index.php?page=my-requests">My Requests</a></li>
                 <li><a href="index.php?page=settings">Settings</a></li>
             </ul>

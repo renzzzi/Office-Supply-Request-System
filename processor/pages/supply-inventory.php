@@ -19,7 +19,6 @@ $lowStockThreshold = 5;
 <table border="1">
     <thead>
         <tr>
-            <th>ID</th>
             <th>Supply Name</th>
             <th>Category</th>
             <th>Current Stock</th>
@@ -35,7 +34,6 @@ $lowStockThreshold = 5;
                 $stockClass = ($supply["stock_quantity"] < $lowStockThreshold) ? 'low-stock' : '';
             ?>
             <tr>
-                <td><?= htmlspecialchars($supply["id"]) ?></td>
                 <td><?= htmlspecialchars($supply["name"]) ?></td>
                 <td><?= htmlspecialchars($categoryName) ?></td>
                 <td class="<?= $stockClass ?>"><?= htmlspecialchars($supply["stock_quantity"]) ?></td>

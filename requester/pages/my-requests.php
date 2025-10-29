@@ -176,7 +176,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <td><?= htmlspecialchars($request["claimed_date"] ?? "N/A") ?></td>
                 <td><?= htmlspecialchars($request["ready_date"] ?? "N/A") ?></td>
                 <td><?= htmlspecialchars($request["finished_date"] ?? "N/A") ?></td>
-                <td><?= htmlspecialchars($request["released_to_id"] ?? "N/A") ?></td>
+                <td><?= htmlspecialchars($usersObj->getUserById($request["released_to_id"])["first_name"] . " " . $usersObj->getUserById($request["released_to_id"])["last_name"]) ?></td>
                 <td><?= htmlspecialchars($request["status"]) ?></td>
             </tr>
         <?php endforeach; ?>

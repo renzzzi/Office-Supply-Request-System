@@ -49,11 +49,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
     elseif ($action === "release") 
     {
         $suppliesToRelease = $requestSuppliesObj->getSuppliesByRequestId($request_id);
-    
+
         foreach ($suppliesToRelease as $supply) {
             $suppliesObj->deductStock($supply['supplies_id'], $supply['supply_quantity']);
         }
-    
+
         $requestsObj->setReleasedToId($request_id, $_POST["released_to_id"]);
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Released);
     }
@@ -356,6 +356,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
             <th>Claimed At</th>
             <th>Ready To Pickup At</th>
             <th>Finished At</th>
+            <th>Released To</th>
             <th>Status</th>
         </tr>
     </thead>
@@ -411,6 +412,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                 <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
                 <td><?= htmlspecialchars($request["ready_date"]) ?></td>
                 <td><?= htmlspecialchars($request["finished_date"]) ?></td>
+                <td><?= htmlspecialchars($usersObj->getUserById($request["released_to_id"])["first_name"] . " " . $usersObj->getUserById($request["released_to_id"])["last_name"]) ?></td>
                 <td><?= htmlspecialchars($request["status"]) ?></td>
             </tr>
         <?php endforeach; ?>
