@@ -9,7 +9,7 @@
     --color-background: #1e1e24;
     --color-surface: #2a2a33;
     --color-primary: #7f5af0;
-    --color-primary-hover: #8864f1;
+    --color-primary-hover: #9374f1;
     --color-accent: #2cb67d;
     --color-error: #ff6b6b;
     
@@ -25,8 +25,9 @@
   color: var(--color-surface);
 }
 
-.low-stock {
-    color: #D8000C;
+.low-stock, 
+.error {
+    color: var(--color-error);
     font-weight: bold;
 }
 
@@ -179,9 +180,21 @@
     border-radius: 4px;
 }
 
+/* Manage Requests */
+
 #main-request-error {
     display: none;
-    color: #D8000C; 
+    color: var(--color-error); 
     font-weight: bold;
     font-size: 0.9em;
+}
+
+.view-supplies-trigger {
+    cursor: pointer;
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.view-supplies-trigger:hover {
+    color: var(--color-primary-hover);
 }

@@ -64,6 +64,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
 
 ?>
 
+<!-- Supply Details Modal -->
+<div class="modal-container" id="supply-details-modal">
+    <div class="modal">
+        <span class="close-button">&times;</span>
+        <h2 id="supply-details-title">Full Supply List</h2>
+        <table border="1" style="width: 100%;">
+            <thead>
+                <tr>
+                    <th>Supply Name</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody id="supply-details-tbody">
+                <!-- Supply details will be loaded here by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <!-- Prepare Supplies Modal -->
 <div class="modal-container" id="prepare-supplies-modal">
     <div class="modal">
@@ -171,7 +190,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                 <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
                 <td><?= htmlspecialchars($departmentName) ?></td>
-                <td><?= $finalSummary ?></td>
+                <?php if ($totalCount > 2): ?>
+                    <td class="view-supplies-trigger" 
+                    data-request-id="<?= htmlspecialchars($request['id']) ?>"
+                    title="Click to view all supplies">
+                        <?= $finalSummary ?>
+                    </td>
+                <?php else: ?>
+                    <td><?= $finalSummary ?></td>
+                <?php endif; ?>
                 <td><?= htmlspecialchars($request["status"]) ?></td>
                 <td>
                     <form action="index.php?page=manage-requests" method="POST">
@@ -248,7 +275,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                 <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
                 <td><?= htmlspecialchars($departmentName) ?></td>
-                <td><?= $finalSummary ?></td>
+                <?php if ($totalCount > 2): ?>
+                    <td class="view-supplies-trigger" 
+                    data-request-id="<?= htmlspecialchars($request['id']) ?>"
+                    title="Click to view all supplies">
+                        <?= $finalSummary ?>
+                    </td>
+                <?php else: ?>
+                    <td><?= $finalSummary ?></td>
+                <?php endif; ?>
                 <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
                 <td><?= htmlspecialchars($request["status"]) ?></td>
                 <td>
@@ -332,7 +367,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                 <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
                 <td><?= htmlspecialchars($departmentName) ?></td>
-                <td><?= $finalSummary ?></td>
+                <?php if ($totalCount > 2): ?>
+                    <td class="view-supplies-trigger" 
+                    data-request-id="<?= htmlspecialchars($request['id']) ?>"
+                    title="Click to view all supplies">
+                        <?= $finalSummary ?>
+                    </td>
+                <?php else: ?>
+                    <td><?= $finalSummary ?></td>
+                <?php endif; ?>
                 <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
                 <td><?= htmlspecialchars($request["ready_date"]) ?></td>
                 <td><?= htmlspecialchars($request["status"]) ?></td>
@@ -408,7 +451,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                 <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
                 <td><?= htmlspecialchars($departmentName) ?></td>
-                <td><?= $finalSummary ?></td>
+                <?php if ($totalCount > 2): ?>
+                    <td class="view-supplies-trigger" 
+                    data-request-id="<?= htmlspecialchars($request['id']) ?>"
+                    title="Click to view all supplies">
+                        <?= $finalSummary ?>
+                    </td>
+                <?php else: ?>
+                    <td><?= $finalSummary ?></td>
+                <?php endif; ?>
                 <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
                 <td><?= htmlspecialchars($request["ready_date"]) ?></td>
                 <td><?= htmlspecialchars($request["finished_date"]) ?></td>
@@ -482,7 +533,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                 <td><?= htmlspecialchars($request["request_date"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
                 <td><?= htmlspecialchars($departmentName) ?></td>
-                <td><?= $finalSummary ?></td>
+                <?php if ($totalCount > 2): ?>
+                    <td class="view-supplies-trigger" 
+                    data-request-id="<?= htmlspecialchars($request['id']) ?>"
+                    title="Click to view all supplies">
+                        <?= $finalSummary ?>
+                    </td>
+                <?php else: ?>
+                    <td><?= $finalSummary ?></td>
+                <?php endif; ?>
                 <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
                 <td><?= htmlspecialchars($request["finished_date"]) ?></td>
                 <td><?= htmlspecialchars($request["status"]) ?></td>
@@ -493,3 +552,4 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
 
 <script src="../assets/searchForUsers.js"></script>
 <script src="../assets/prepareSupplyListRequest.js"></script>
+<script src="../assets/viewRequestSuppliesDetails.js"></script>

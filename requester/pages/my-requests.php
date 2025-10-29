@@ -59,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <form class="new-request-form" onsubmit="return false;">
             <div class="form-group">
                 <label for="item-name">Supply Name</label>
-                <div id="supply-name-error" class="error-message"></div>
+                <div id="supply-name-error" class="error-message error"></div>
                 <input type="text" id="item-name" name="item-name" required 
                 autocomplete="off" placeholder="Start typing a supply name...">
                 <div id="supply-search-results">
@@ -68,7 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </div>
             <div class="form-group">
                 <label for="quantity">Quantity (Per Unit)</label>
-                <div id="quantity-error" class="error-message"></div>
+                <div id="quantity-error" class="error-message error"></div>
                 <input type="number" id="quantity" name="quantity" required min="1">
             </div>
 
@@ -95,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <!-- Hidden inputs for supplies will appear here -->
             </div>
             <button type="submit" class="submit-request-button">Submit Request</button>
-            <p id="main-request-error" class="error-message"><?= $errors["supplies"] ?? "" ?></p>
+            <p id="main-request-error" class="error-message error"><?= $errors["supplies"] ?? "" ?></p>
         </form>
     </div>
 </div>
