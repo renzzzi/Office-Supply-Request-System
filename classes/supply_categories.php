@@ -20,6 +20,14 @@ class SupplyCategories
         return $query->execute();
     }
 
+    public function deleteSupplyCategory($categoryId)
+    {
+        $sql = "DELETE FROM supply_categories WHERE id = :id";
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":id", $categoryId);
+        return $query->execute();
+    }
+
     public function getAllSupplyCategories()
     {
         $sql = "SELECT * FROM supply_categories ORDER BY name ASC";

@@ -14,7 +14,7 @@ class Departments
 
     public function addDepartment()
     {
-        $sql = "INSERT INTO department (name) VALUES (:name)";
+        $sql = "INSERT INTO departments (name) VALUES (:name)";
 
         $query = $this->pdo->prepare($sql);
         $query->bindParam(":name", $this->name);

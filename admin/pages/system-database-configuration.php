@@ -9,36 +9,50 @@ $supplyObj = new Supplies($pdoConnection);
 $categoryObj = new SupplyCategories($pdoConnection);
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $supplyObj->name = $_POST["name"];
-    $supplyObj->supply_categories_id = $_POST["category_id"];
-    $supplyObj->unit_of_supply = $_POST["unit_of_supply"];
-    $supplyObj->price_per_unit = $_POST["price_per_unit"];
-    $supplyObj->stock_quantity = $_POST["stock_quantity"];
+    if (isset($_POST["action"]) && $_POST["action"] === "add_supply") {
+        $supplyObj->name = $_POST["name"];
+        $supplyObj->supply_categories_id = $_POST["category_id"];
+        $supplyObj->unit_of_supply = $_POST["unit_of_supply"];
+        $supplyObj->price_per_unit = $_POST["price_per_unit"];
+        $supplyObj->stock_quantity = $_POST["stock_quantity"];
 
-    if ($supplyObj->addSupply()) {
-        header("Location: index.php?page=system-database-configuration");
-        exit();
-    } else {
-        echo "<script>alert('Error adding supply, please try again.');</script>";
+        if ($supplyObj->addSupply()) {
+            header("Location: index.php?page=system-database-configuration");
+            exit();
+        } else {
+            echo "<script>alert('Error adding supply, please try again.');</script>";
+        }
+    } elseif (isset($_POST["action"]) && $_POST["action"] === "add_category") {
+        $categoryObj->name = $_POST["category_name"];
+        if ($categoryObj->addSupplyCategory()) {
+            header("Location: index.php?page=system-database-configuration");
+            exit();
+        } else {
+            echo "<script>alert('Error adding category, please try again.');</script>";
+        }
     }
 }
 
 $supplies = $supplyObj->viewAllSupply();
+$categories = $categoryObj->getAllSupplyCategories();
+
 ?>
 
-<div class="modal-container">
+<!-- Add Supply Modal -->
+<div class="modal-container" id="add-supply-modal">
     <div class="modal">
         <span class="close-button">&times;</span>
         <h2>Add New Supply</h2>
         <form action="index.php?page=system-database-configuration" method="POST">
+            <input type="hidden" name="action" value="add_supply">
             <div class="form-group">
                 <label for="name">Supply Name</label>
                 <input type="text" id="name" name="name" required>
             </div>
             <div class="form-group">
-                <label for="category_id">Category</label>
+                <label for="category_id">Supply Category</label>
                 <select name="category_id" id="category_id" required>
-                    <?php foreach ($categoryObj->getAllSupplyCategories() as $category) { ?>
+                    <?php foreach ($categories as $category) { ?>
                         <option value="<?= $category["id"]; ?>"><?= $category["name"]; ?></option>
                     <?php } ?>
                 </select>
@@ -60,15 +74,33 @@ $supplies = $supplyObj->viewAllSupply();
     </div>
 </div>
 
-<button class="open-button">Add Supply</button>
+<!-- Add Supply Category Modal -->
+<div class="modal-container" id="add-category-modal">
+    <div class="modal">
+        <span class="close-button">&times;</span>
+        <h2>Add New Supply Category</h2>
+        <form action="index.php?page=system-database-configuration" method="POST">
+            <input type="hidden" name="action" value="add_category">
+            <div class="form-group">
+                <label for="category_name">Supply Category Name</label>
+                <input type="text" id="category_name" name="category_name" required>
+            </div>
+            <button type="submit" class="submit-button">Add Supply Category</button>
+        </form>
+    </div>
+</div>
+
+<!-- Supplies Table -->
+<h2>Supplies</h2>
 <table border="1">
     <thead>
         <tr>
             <th>ID</th>
             <th>Name</th>
-            <th>Category</th>
+            <th>Supply Category</th>
             <th>Unit Of Supply</th>
             <th>Price Per Unit</th>
+            <th>Stock Quantity</th>
         </tr>
     </thead>
     <tbody>
@@ -84,3 +116,24 @@ $supplies = $supplyObj->viewAllSupply();
         <?php } ?>
     </tbody>
 </table>
+<button class="open-button" data-target="#add-supply-modal">Add Supply</button>
+
+<!-- Supply Categories Table -->
+<h2>Supply Categories</h2>
+<table border=1>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($categories as $category) { ?>
+            <tr>
+                <td><?= htmlspecialchars($category["id"]); ?></td>
+                <td><?= htmlspecialchars($category["name"]); ?></td>
+            </tr>
+        <?php } ?>
+    </tbody>
+</table>
+<button class="open-button" data-target="#add-category-modal">Add Supply Category</button>

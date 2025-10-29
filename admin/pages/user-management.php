@@ -9,29 +9,42 @@ $userObj = new Users($pdoConnection);
 $departmentObj = new Departments($pdoConnection);
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $userObj->first_name = $_POST["first_name"];
-    $userObj->last_name = $_POST["last_name"];
-    $userObj->email = $_POST["email"];
-    $userObj->password_hash = password_hash($_POST["password"], PASSWORD_DEFAULT);
-    $userObj->departments_id = $_POST["department"];
-    $userObj->role = $_POST["role"];
+    if (isset($_POST["action"]) && $_POST["action"] === "add_user") {
+        $userObj->first_name = $_POST["first_name"];
+        $userObj->last_name = $_POST["last_name"];
+        $userObj->email = $_POST["email"];
+        $userObj->password_hash = password_hash($_POST["password"], PASSWORD_DEFAULT);
+        $userObj->departments_id = $_POST["department"];
+        $userObj->role = $_POST["role"];
 
-    if ($userObj->addUser()) {
-        header("Location: index.php?page=user-management");
-        exit();
-    } else {
-        echo "<script>alert('Error adding user, please try again.');</script>";
+        if ($userObj->addUser()) {
+            header("Location: index.php?page=user-management");
+            exit();
+        } else {
+            echo "<script>alert('Error adding user, please try again.');</script>";
+        }
+    } elseif (isset($_POST["action"]) && $_POST["action"] === "add_department") {
+        $departmentObj->name = $_POST["department_name"];
+        if ($departmentObj->addDepartment()) {
+            header("Location: index.php?page=user-management");
+            exit();
+        } else {
+            echo "<script>alert('Error adding department, please try again.');</script>";
+        }
     }
 }
 
 $users = $userObj->getAllUsers();
+$departments = $departmentObj->getAllDepartments();
 ?>
 
-<div class="modal-container">
+<!-- Add User Modal -->
+<div class="modal-container" id="add-user-modal">
     <div class="modal">
         <span class="close-button">&times;</span>
         <h2>Add New User</h2>
         <form action="index.php?page=user-management" method="POST" class="add-user-form">
+            <input type="hidden" name="action" value="add_user">
             <div class="form-group">
                 <label for="first_name">First Name</label>
                 <input type="text" id="first_name" name="first_name" required>
@@ -51,7 +64,7 @@ $users = $userObj->getAllUsers();
             <div class="form-group">
                 <label for="department">Department</label>
                 <select name="department" id="department" required>
-                    <?php foreach ($departmentObj->getAllDepartments() as $department) { ?>
+                    <?php foreach ($departments as $department) { ?>
                         <option value="<?= $department["id"]; ?>"><?= $department["name"]; ?></option>
                     <?php } ?>
                 </select>
@@ -69,7 +82,24 @@ $users = $userObj->getAllUsers();
     </div>
 </div>
 
-<button class="open-button">Add User</button>
+<!-- Add Department Modal -->
+<div class="modal-container" id="add-department-modal">
+    <div class="modal">
+        <span class="close-button">&times;</span>
+        <h2>Add New Department</h2>
+        <form action="index.php?page=user-management" method="POST" class="add-department-form">
+            <input type="hidden" name="action" value="add_department">
+            <div class="form-group">
+                <label for="department_name">Department Name</label>
+                <input type="text" id="department_name" name="department_name" required>
+            </div>
+            <button type="submit" class="submit-button">Add Department</button>
+        </form>
+    </div>
+</div>
+
+<!-- Users Table -->
+<h2>Users</h2>
 <table border="1" class="user-table">
     <thead>
         <tr>
@@ -97,3 +127,24 @@ $users = $userObj->getAllUsers();
     </tbody>
 </table>
 <span class="user-count">Total Users: <?= count($users) ?></span>
+<button class="open-button" data-target="#add-user-modal">Add User</button>
+
+<!-- Departments Modal -->
+<h2>Departments</h2>
+ <table border=1>
+    <thead>
+        <tr>
+            <th>Department ID</th>
+            <th>Department Name</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($departments as $department): ?>
+            <tr>
+                <td><?= htmlspecialchars($department["id"]) ?></td>
+                <td><?= htmlspecialchars($department["name"]) ?></td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+ </table>
+ <button class="open-button" data-target="#add-department-modal">Add Department</button>
