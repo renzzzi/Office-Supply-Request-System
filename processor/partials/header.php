@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Supply Desk | Requester</title>
     <link rel="stylesheet" href="../assets/universal-style.css">
+    <script src="../assets/modal.js" defer></script>
 </head>
 <body class="panel-body">
     <aside class="side-panel">
@@ -16,7 +17,6 @@
             <ul>
                 <li><a href="index.php?page=reports">Reports</a></li>
                 <li><a href="index.php?page=manage-requests">Manage Requests</a></li>
-                <li><a href="index.php?page=manage-purchase-orders">Manage Purchase Orders</a></li>
                 <li><a href="index.php?page=supply-inventory">Supply Inventory</a></li>
                 <li><a href="index.php?page=settings">Settings</a></li>
             </ul>

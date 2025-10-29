@@ -22,16 +22,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
     if ($action === "claim") 
     {
         $requestsObj->setProcessorId($request_id, $_SESSION["user_id"]);
-        $requestsObj->modifyRequestStatus($request_id, "in_progress");
-        $requestsObj->updateProcessedDate($request_id);
+        $requestsObj->updateRequestStatus($request_id, RequestStatus::Claimed);
     } 
-    elseif ($action === "approve") 
+    elseif ($action === "ready") 
     {
-        $requestsObj->modifyRequestStatus($request_id, "completed");
+        $requestsObj->updateRequestStatus($request_id, RequestStatus::Ready);
     } 
     elseif ($action === "deny") 
     {
-        $requestsObj->modifyRequestStatus($request_id, "denied");
+        $requestsObj->updateRequestStatus($request_id, RequestStatus::Denied);
+    }
+    elseif ($action === "release") 
+    {
+        $requestsObj->setReleasedToId($request_id, $_POST["released_to_id"]);
+        $requestsObj->updateRequestStatus($request_id, RequestStatus::Released);
     }
 
     header("Location: index.php?page=manage-requests");
@@ -40,15 +44,36 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
 
 ?>
 
+<!-- Release Modal -->
+<div class="modal-container" id="release-modal">
+    <div class="modal">
+        <span class="close-button">&times;</span>
+        <h2>Who are you releasing this to?</h2>
 
-<!-- UNCLAIMED REQUESTS -->
+        <form action="index.php?page=manage-requests" method="POST">
+            <div class="form-group">
+                <label for="user-search">Search for User by Name</label>
+                <input type="text" id="user-search" autocomplete="off" placeholder="Start typing a name...">
+                <!-- Search results will appear here -->
+                <div id="user-search-results"></div>
+            </div>
 
-<h2>Unclaimed Requests</h2>
+            <input type="hidden" id="released-to-user-id" name="released_to_id" required>
+            <input type="hidden" name="request_id" id="release-request-id">
+            <input type="hidden" name="action" value="release">
+
+            <button type="submit" class="submit-button" id="release-submit-button" disabled>Release</button>
+        </form>
+    </div>
+</div>
+
+<!-- Pending Requests Table -->
+<h2>Pending Requests</h2>
 <table border=1>
     <thead>
         <tr>
             <th>Request ID</th>
-            <th>Date Requested</th>
+            <th>Requested At</th>
             <th>Requester Name</th>
             <th>Department</th>
             <th>Supply Requested (Summary)</th>
@@ -57,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
         </tr>
     </thead>
     <tbody>
-        <?php foreach ($requestsObj->getAllUnclaimedRequests() as $request): ?>
+        <?php foreach ($requestsObj->getAllRequestsByStatus(RequestStatus::Pending) as $request): ?>
             <?php
                 $requester = $usersObj->getUserById($request["requesters_id"]);
                 $departmentName = "N/A";
@@ -101,7 +126,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
             ?>
             <tr>
                 <td><?= htmlspecialchars($request["id"]) ?></td>
-                <td><?= htmlspecialchars($request["request_date"]) ?></td>
+                <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
                 <td><?= htmlspecialchars($departmentName) ?></td>
                 <td><?= $finalSummary ?></td>
@@ -118,23 +143,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
 </table>
 
 
-<!-- CLAIMED REQUESTS -->
-
+<!-- Claimed Requests Table -->
 <h2>My Claimed Requests</h2>
 <table border=1>
     <thead>
         <tr>
             <th>Request ID</th>
-            <th>Date Requested</th>
+            <th>Requested At</th>
             <th>Requester Name</th>
             <th>Department</th>
             <th>Supply Requested (Summary)</th>
+            <th>Claimed At</th>
             <th>Status</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        <?php foreach ($requestsObj->getAllClaimedRequestsByProcessorId($_SESSION["user_id"]) as $request): ?>
+        <?php foreach ($requestsObj->getAllRequestsByProcessorIdAndStatus($_SESSION["user_id"], RequestStatus::Claimed) as $request): ?>
             <?php
                 $requester = $usersObj->getUserById($request["requesters_id"]);
                 $departmentName = "N/A";
@@ -178,15 +203,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
             ?>
             <tr>
                 <td><?= htmlspecialchars($request["id"]) ?></td>
-                <td><?= htmlspecialchars($request["request_date"]) ?></td>
+                <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
                 <td><?= htmlspecialchars($departmentName) ?></td>
                 <td><?= $finalSummary ?></td>
+                <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
                 <td><?= htmlspecialchars($request["status"]) ?></td>
                 <td>
                     <form action="index.php?page=manage-requests" method="POST">
                         <input type="hidden" name="request_id" value="<?= htmlspecialchars($request["id"]) ?>">
-                        <button type="submit" name="action" value="approve">Approve</button>
+                        <button type="submit" name="action" value="ready">Ready For Pickup</button>
                         <button type="submit" name="action" value="deny">Deny</button>
                     </form>
                 </td>
@@ -196,22 +222,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
 </table>
 
 
-<!-- COMPLETED REQUESTS -->
-
-<h2>Completed Requests</h2>
+<!-- Ready For Pickup Requests Table -->
+<h2>Ready For Pickup Requests</h2>
 <table border=1>
     <thead>
         <tr>
             <th>Request ID</th>
-            <th>Date Requested</th>
+            <th>Requested At</th>
             <th>Requester Name</th>
             <th>Department</th>
             <th>Supply Requested (Summary)</th>
+            <th>Claimed At</th>
+            <th>Ready To Pickup At</th>
             <th>Status</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        <?php foreach ($requestsObj->getAllCompletedRequestsByProcessorId($_SESSION["user_id"]) as $request): ?>
+        <?php foreach ($requestsObj->getAllRequestsByProcessorIdAndStatus($_SESSION["user_id"], RequestStatus::Ready) as $request): ?>
             <?php
                 $requester = $usersObj->getUserById($request["requesters_id"]);
                 $departmentName = "N/A";
@@ -255,33 +283,111 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
             ?>
             <tr>
                 <td><?= htmlspecialchars($request["id"]) ?></td>
-                <td><?= htmlspecialchars($request["request_date"]) ?></td>
+                <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
                 <td><?= htmlspecialchars($departmentName) ?></td>
                 <td><?= $finalSummary ?></td>
+                <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
+                <td><?= htmlspecialchars($request["ready_date"]) ?></td>
+                <td><?= htmlspecialchars($request["status"]) ?></td>
+                <td><button class="open-button" data-target="#release-modal" 
+                data-request-id="<?= htmlspecialchars($request["id"]) ?>">Release</button></td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+
+<!-- Released Requests Table -->
+<h2>Released Requests</h2>
+<table border=1>
+    <thead>
+        <tr>
+            <th>Request ID</th>
+            <th>Requested At</th>
+            <th>Requester Name</th>
+            <th>Department</th>
+            <th>Supply Requested (Summary)</th>
+            <th>Claimed At</th>
+            <th>Ready To Pickup At</th>
+            <th>Finished At</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($requestsObj->getAllRequestsByProcessorIdAndStatus($_SESSION["user_id"], RequestStatus::Released) as $request): ?>
+            <?php
+                $requester = $usersObj->getUserById($request["requesters_id"]);
+                $departmentName = "N/A";
+                if ($requester) 
+                {
+                    $department = $departmentsObj->getDepartmentById($requester["departments_id"]);
+                    if ($department) 
+                    {
+                        $departmentName = $department["name"];
+                    }
+                }
+
+                /*
+                    For displaying supply summary:
+                    - If there are 2 or fewer supplies, list them all with quantities.
+                    - If there are more than 2 supplies, list both supplies with quantity and indicate
+                    ". . . and x more" where x is the number of the remaining supplies.
+                */
+                $supplySummary = $requestSuppliesObj->getSupplySummaryByRequestId($request["id"]);
+                $totalCount = $requestSuppliesObj->getSupplyCountByRequestId($request["id"]);
+                $finalSummary = ""; 
+
+                if ($totalCount === 0) 
+                {
+                    $finalSummary = "No supplies";
+                } 
+                else 
+                {
+                    $summaryParts = [];
+                    foreach ($supplySummary as $supply):
+                        $summaryParts[] = htmlspecialchars($supply['name']) . ' (x' . htmlspecialchars($supply['supply_quantity']) . ')';
+                    endforeach;
+                    $finalSummary = implode("<br>", $summaryParts);
+                
+                    if ($totalCount > count($supplySummary)) 
+                    {
+                        $remainingCount = $totalCount - count($supplySummary);
+                        $finalSummary .= "<br>" . "&nbsp;...and&nbsp;" . $remainingCount . "&nbsp;more";
+                    }
+                }
+            ?>
+            <tr>
+                <td><?= htmlspecialchars($request["id"]) ?></td>
+                <td><?= htmlspecialchars($request["requested_date"]) ?></td>
+                <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
+                <td><?= htmlspecialchars($departmentName) ?></td>
+                <td><?= $finalSummary ?></td>
+                <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
+                <td><?= htmlspecialchars($request["ready_date"]) ?></td>
+                <td><?= htmlspecialchars($request["finished_date"]) ?></td>
                 <td><?= htmlspecialchars($request["status"]) ?></td>
             </tr>
         <?php endforeach; ?>
     </tbody>
 </table>
 
-
-<!-- DENIED REQUESTS -->
-
+<!-- Denied Requests Table -->
 <h2>Denied Requests</h2>
 <table border=1>
     <thead>
         <tr>
             <th>Request ID</th>
-            <th>Date Requested</th>
+            <th>Requested At</th>
             <th>Requester Name</th>
             <th>Department</th>
             <th>Supply Requested (Summary)</th>
+            <th>Claimed At</th>
+            <th>Finished At</th>
             <th>Status</th>
         </tr>
     </thead>
     <tbody>
-        <?php foreach ($requestsObj->getAllDeniedRequestsByProcessorId($_SESSION["user_id"]) as $request): ?>
+        <?php foreach ($requestsObj->getAllRequestsByProcessorIdAndStatus($_SESSION["user_id"], RequestStatus::Denied) as $request): ?>
             <?php
                 $requester = $usersObj->getUserById($request["requesters_id"]);
                 $departmentName = "N/A";
@@ -329,8 +435,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
                 <td><?= htmlspecialchars($departmentName) ?></td>
                 <td><?= $finalSummary ?></td>
+                <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
+                <td><?= htmlspecialchars($request["finished_date"]) ?></td>
                 <td><?= htmlspecialchars($request["status"]) ?></td>
             </tr>
         <?php endforeach; ?>
     </tbody>
 </table>
+
+<script src="../assets/searchForUsers.js"></script>

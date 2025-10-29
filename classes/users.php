@@ -66,6 +66,23 @@ class Users
         
         return $query->fetch();
     }
+
+    public function getUsersByName($search)
+    {
+        $searchTerm = '%' . $search . '%';
+
+        $sql = "SELECT id, first_name, last_name FROM users 
+                WHERE first_name LIKE :term 
+                   OR last_name LIKE :term 
+                   OR CONCAT(first_name, ' ', last_name) LIKE :term 
+                LIMIT 10";
+
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":term", $searchTerm);
+        $query->execute();
+
+        return $query->fetchAll();
+    }
 }
 
 ?>

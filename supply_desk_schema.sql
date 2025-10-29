@@ -36,13 +36,14 @@ CREATE TABLE requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     requesters_id INT NOT NULL,
     processors_id INT,
+    released_to_id INT, -- ID of the user who will pick up the supplies
 
     requested_date DATETIME NOT NULL, -- When the request was made
     claimed_date DATETIME, -- When a processor claims and starts working on the request
     ready_date DATETIME, -- When the request is now ready for pickup
-    finished_date DATETIME, -- When the request has either been picked up or denied
+    finished_date DATETIME, -- When the request has either been released or denied
     
-    status ENUM('Pending', 'Claimed', 'Ready For Pickup', 'Completed', 'Denied') NOT NULL DEFAULT 'Pending',
+    status ENUM('Pending', 'Claimed', 'Ready For Pickup', 'Released', 'Denied') NOT NULL DEFAULT 'Pending',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     requesters_message TEXT,
     processors_remark TEXT,
@@ -51,6 +52,9 @@ CREATE TABLE requests (
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
     FOREIGN KEY (processors_id) REFERENCES users(id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+    FOREIGN KEY (released_to_id) REFERENCES users(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
@@ -103,3 +107,11 @@ INSERT INTO users (first_name, last_name, email, password_hash, departments_id, 
 ('re', 're', 're@re.re', '$2y$10$Mc7x5V7o5griHt9ddJDu6e/FDslFoAjMdN2fgDdEoethCZd4plQfW', 1, 'Requester'),
 ('pr', 'pr', 'pr@pr.pr', '$2y$10$1sTu0XqSQFtQLh6qCsMPY.3F0eP50879l9Yw46Bxgd5J48Og98u5W', 2, 'Processor'),
 ('ad', 'ad', 'ad@ad.ad', '$2y$10$Jwy6bUyLhsIKyjoq25hrSeoLOuFsdIrMQFomGw247x6A3wMwArc2S', 3, 'Admin');
+
+INSERT INTO supplies (supply_categories_id, name, unit_of_supply, price_per_unit, stock_quantity) VALUES
+(1, 'Ballpoint Pen', 'Piece', 8.50, 100),
+(1, 'Marker', 'Piece', 10.00, 50),
+(2, 'A4 Paper Ream', 'Ream', 450.25, 30),
+(2, 'Sticky Notes', 'Dozen', 15.00, 40),
+(3, 'Wireless Mouse', 'Piece', 75.50, 20),
+(3, 'Keyboard', 'Piece', 180.00, 15);

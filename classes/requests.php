@@ -1,6 +1,17 @@
 <?php
 
+use LDAP\Result;
+
 require_once "database.php";
+
+enum RequestStatus: string
+{
+    case Pending = "Pending";
+    case Claimed = "Claimed";
+    case Ready = "Ready For Pickup";
+    case Released = "Released";
+    case Denied = "Denied";
+}
 
 class Requests
 {
@@ -9,11 +20,16 @@ class Requests
     public $id = "";
     public $requesters_id = "";
     public $processors_id = ""; // nullable
+    public $released_to_id = ""; // nullable
+
     public $requested_date = "";
+    public $claimed_date = ""; //nullable
     public $ready_date = ""; // nullable
     public $finished_date = ""; // nullable
-    public $updated_at = ""; // auto-updated
+    
     public $status = ""; // default 'Pending'
+    public $updated_at = ""; // auto-updated
+
     public $requesters_message = ""; // nullable
     public $processors_remarks = ""; // nullable
 
@@ -22,6 +38,7 @@ class Requests
         $this->pdo = $pdo;
     }
 
+    // Create
     public function addRequest()
     {
         $sql = "INSERT INTO requests (requesters_id, requested_date) 
@@ -35,23 +52,27 @@ class Requests
         return $this->pdo->lastInsertId();
     }
 
-    public function modifyRequestStatus($requestId = "", $newStatus = "pending")
+    // Update
+    public function updateRequestStatus($requestId, RequestStatus $newStatus)
     {
-        $sql = "UPDATE requests SET status = :status WHERE id = :id";
+        $sql = "UPDATE requests SET status = :status, ";
+        
+        switch ($newStatus) {
+            case RequestStatus::Claimed:
+                $sql .= "claimed_date = NOW() ";
+                break;
+            case RequestStatus::Ready:
+                $sql .= "ready_date = NOW() ";
+                break;
+            case RequestStatus::Released:
+            case RequestStatus::Denied:
+                $sql .= "finished_date = NOW() ";
+                break;
+        }
+        $sql .= "WHERE id = :id";
 
         $query = $this->pdo->prepare($sql);
-        $query->bindParam(":status", $newStatus);
-        $query->bindParam(":id", $requestId);
-
-        return $query->execute();
-    }
-
-    public function updateProcessedDate($requestId = "")
-    {
-        $sql = "UPDATE requests SET processed_date = :processed_date WHERE id = :id";
-
-        $query = $this->pdo->prepare($sql);
-        $query->bindParam(":processed_date", date('Y-m-d H:i:s'));
+        $query->bindValue(":status", $newStatus->value);
         $query->bindParam(":id", $requestId);
 
         return $query->execute();
@@ -68,9 +89,21 @@ class Requests
         return $query->execute();
     }
 
+    public function setReleasedToId($requestId = "", $releasedToId = "")
+    {
+        $sql = "UPDATE requests SET released_to_id = :released_to_id WHERE id = :id";
+
+        $query = $this->pdo->prepare($sql);
+        $query->bindParam(":released_to_id", $releasedToId);
+        $query->bindParam(":id", $requestId);
+
+        return $query->execute();
+    }
+
+    // Read
     public function getAllRequests()
     {
-        $sql = "SELECT * FROM requests ORDER BY request_date DESC";
+        $sql = "SELECT * FROM requests ORDER BY requested_date DESC";
 
         $query = $this->pdo->prepare($sql);
         $query->execute();
@@ -80,7 +113,7 @@ class Requests
 
     public function getAllRequestsByRequesterId($requesterId = "")
     {
-        $sql = "SELECT * FROM requests WHERE requesters_id = :requesters_id ORDER BY request_date DESC";
+        $sql = "SELECT * FROM requests WHERE requesters_id = :requesters_id ORDER BY requested_date DESC";
 
         $query = $this->pdo->prepare($sql);
         $query->bindParam(":requesters_id", $requesterId);
@@ -89,47 +122,24 @@ class Requests
         return $query->fetchAll();
     }
 
-    public function getAllUnclaimedRequests()
+    public function getAllRequestsByProcessorIdAndStatus($processorId = "", RequestStatus $status)
     {
-        $sql = "SELECT * FROM requests WHERE status = 'pending' 
-                ORDER BY request_date DESC";
+        $sql = "SELECT * FROM requests WHERE processors_id = :processors_id AND status = :status ORDER BY requested_date DESC";
+
         $query = $this->pdo->prepare($sql);
+        $query->bindParam(":processors_id", $processorId);
+        $query->bindValue(":status", $status->value);
         $query->execute();
 
         return $query->fetchAll();
     }
 
-    public function getAllClaimedRequestsByProcessorId($processorId = "")
+    public function getAllRequestsByStatus(RequestStatus $status)
     {
-        $sql = "SELECT * FROM requests WHERE processors_id = :processors_id 
-                AND status = 'in_progress' ORDER BY request_date DESC";
+        $sql = "SELECT * FROM requests WHERE status = :status ORDER BY requested_date DESC";
 
         $query = $this->pdo->prepare($sql);
-        $query->bindParam(":processors_id", $processorId);
-        $query->execute();
-
-        return $query->fetchAll();
-    }
-
-    public function getAllCompletedRequestsByProcessorId($processorId = "")
-    {
-        $sql = "SELECT * FROM requests WHERE processors_id = :processors_id 
-                AND status = 'completed' ORDER BY request_date DESC";
-        
-        $query = $this->pdo->prepare($sql);
-        $query->bindParam(":processors_id", $processorId);
-        $query->execute();
-
-        return $query->fetchAll();
-    }
-
-    public function getAllDeniedRequestsByProcessorId($processorId = "")
-    {
-        $sql = "SELECT * FROM requests WHERE processors_id = :processors_id 
-                AND status = 'denied' ORDER BY request_date DESC";
-
-        $query = $this->pdo->prepare($sql);
-        $query->bindParam(":processors_id", $processorId);
+        $query->bindValue(":status", $status->value);
         $query->execute();
 
         return $query->fetchAll();
