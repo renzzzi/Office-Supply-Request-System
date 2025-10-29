@@ -25,8 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $departmentId = $userInfo["departments_id"];
 
     $requestsObj->requesters_id = $_SESSION["user_id"];
-    $requestsObj->departments_id = $departmentId;
-    $requestsObj->request_date = date('Y-m-d H:i:s');
+    $requestsObj->requested_date = date('Y-m-d H:i:s');
     if ($requestsObj->addRequest()) {
         $newRequestId = $pdoConnection->lastInsertId();
     } else {
@@ -122,7 +121,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <tr>
                 <td><?= htmlspecialchars($request["id"]) ?></td>
                 <td><?= htmlspecialchars($processorName) ?></td>
-                <td><?= htmlspecialchars($request["request_date"]) ?></td>
+                <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($request["processed_date"] ?? "N/A") ?></td>
                 <td><?= htmlspecialchars($request["status"]) ?></td>
             </tr>

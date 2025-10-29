@@ -9,10 +9,13 @@ class Requests
     public $id = "";
     public $requesters_id = "";
     public $processors_id = ""; // nullable
-    public $departments_id = "";
-    public $status = ""; // default 'pending'
-    public $request_date = "";
-    public $processed_date = ""; // nullable
+    public $requested_date = "";
+    public $ready_date = ""; // nullable
+    public $finished_date = ""; // nullable
+    public $updated_at = ""; // auto-updated
+    public $status = ""; // default 'Pending'
+    public $requesters_message = ""; // nullable
+    public $processors_remarks = ""; // nullable
 
     public function __construct(PDO $pdo)
     {
@@ -21,19 +24,15 @@ class Requests
 
     public function addRequest()
     {
-        $sql = "INSERT INTO requests (requesters_id, departments_id, request_date) 
-                VALUES (:requesters_id, :departments_id, :request_date)";
+        $sql = "INSERT INTO requests (requesters_id, requested_date) 
+                VALUES (:requesters_id, :requested_date)";
 
         $query = $this->pdo->prepare($sql);
         $query->bindParam(":requesters_id", $this->requesters_id);
-        $query->bindParam(":departments_id", $this->departments_id);
-        $query->bindParam(":request_date", $this->request_date);
-
-        if ($query->execute()) {
-            return $this->pdo->lastInsertId();
-        } else {
-            return false;
-        }
+        $query->bindParam(":requested_date", $this->requested_date);
+        $query->execute();
+        
+        return $this->pdo->lastInsertId();
     }
 
     public function modifyRequestStatus($requestId = "", $newStatus = "pending")

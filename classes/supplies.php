@@ -20,14 +20,15 @@ class Supplies
     
     public function addSupply()
     {
-    $sql = "INSERT INTO supplies (supply_categories_id, name, unit_of_supply, price_per_unit) 
-        VALUES (:supply_categories_id, :name, :unit_of_supply, :price_per_unit)";
+    $sql = "INSERT INTO supplies (supply_categories_id, name, unit_of_supply, price_per_unit, stock_quantity) 
+        VALUES (:supply_categories_id, :name, :unit_of_supply, :price_per_unit, :stock_quantity)";
 
         $query = $this->pdo->prepare($sql);
         $query->bindParam(":name", $this->name);
         $query->bindParam(":supply_categories_id", $this->supply_categories_id);
         $query->bindParam(":unit_of_supply", $this->unit_of_supply);
         $query->bindParam(":price_per_unit", $this->price_per_unit);
+        $query->bindParam(":stock_quantity", $this->stock_quantity);
         
         return $query->execute();
     }
@@ -53,22 +54,6 @@ class Supplies
         $query->execute();
 
         return $query->fetchAll(PDO::FETCH_COLUMN);
-    }
-
-    //broken
-    public function editSupply($supplyId = "")
-    {
-        $sql = "UPDATE supplies SET supply_categories_id = :supply_categories_id, name = :name, unit_of_supply = :unit_of_supply, price_per_unit = :price_per_unit
-                WHERE id = :id";
-
-        $query = $this->pdo->prepare($sql);
-        $query->bindParam(":name", $name);
-        $query->bindParam(":supply_categories_id", $supply_categories_id);
-        $query->bindParam(":unit_of_supply", $unit_of_supply);
-        $query->bindParam(":price_per_unit", $price_per_unit);
-        $query->bindParam(":id", $supplyId);
-
-        return $query->execute();
     }
 
     public function getSupplyByName($name = "")

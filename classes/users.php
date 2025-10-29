@@ -12,7 +12,7 @@ class Users
     public $email = "";
     public $password_hash = "";
     public $departments_id = "";
-    public $roles_id = "";
+    public $role = "";
 
     public function __construct(PDO $pdo)
     {
@@ -21,8 +21,8 @@ class Users
 
     public function addUser()
     {
-        $sql = "INSERT INTO users (first_name, last_name, email, password_hash, departments_id, roles_id) 
-                VALUES (:first_name, :last_name, :email, :password_hash, :departments_id, :roles_id)";
+        $sql = "INSERT INTO users (first_name, last_name, email, password_hash, departments_id, role) 
+                VALUES (:first_name, :last_name, :email, :password_hash, :departments_id, :role)";
 
         $query = $this->pdo->prepare($sql);
         $query->bindParam(":first_name", $this->first_name);
@@ -30,7 +30,7 @@ class Users
         $query->bindParam(":email", $this->email);
         $query->bindParam(":password_hash", $this->password_hash);
         $query->bindParam(":departments_id", $this->departments_id);
-        $query->bindParam(":roles_id", $this->roles_id);
+        $query->bindParam(":role", $this->role);
 
         return $query->execute();
     }

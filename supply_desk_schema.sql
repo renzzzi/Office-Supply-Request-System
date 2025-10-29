@@ -25,7 +25,7 @@ CREATE TABLE users (
     email VARCHAR(100) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     departments_id INT NOT NULL,
-    roles ENUM('Requester', 'Processor', 'Admin') NOT NULL DEFAULT 'Requester',
+    role ENUM('Requester', 'Processor', 'Admin') NOT NULL DEFAULT 'Requester',
 
     FOREIGN KEY (departments_id) REFERENCES departments(id)
         ON UPDATE CASCADE
@@ -36,13 +36,13 @@ CREATE TABLE requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     requesters_id INT NOT NULL,
     processors_id INT,
-    departments_id INT NOT NULL,
     requested_date DATETIME NOT NULL,
-    claimed_date DATETIME,
-    completed_date DATETIME,
+    ready_date DATETIME,
+    finished_date DATETIME,
+    status ENUM('Pending', 'Ready For Pickup', 'Completed', 'Denied') NOT NULL DEFAULT 'Pending',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    status ENUM('Pending', 'Prepared', 'Released', 'Denied') NOT NULL DEFAULT 'Pending',
-    remarks TEXT,
+    requesters_message TEXT,
+    processors_remark TEXT,
 
     FOREIGN KEY (requesters_id) REFERENCES users(id)
         ON UPDATE CASCADE
@@ -85,14 +85,14 @@ CREATE TABLE request_supplies (
     FOREIGN KEY (supplies_id) REFERENCES supplies(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
-    );
+);
 
 -- Seeding Initial Data
 
 INSERT INTO departments (name) VALUES
-('IT'),
 ('Marketing'),
-('Sales');
+('Operations'),
+('IT');
 
 INSERT INTO supply_categories (name) VALUES 
 ('Writing Supplies'),

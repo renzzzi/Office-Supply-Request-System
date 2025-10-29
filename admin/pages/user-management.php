@@ -3,12 +3,10 @@
 require_once __DIR__ . "/../../classes/database.php";
 require_once __DIR__ . "/../../classes/users.php";
 require_once __DIR__ . "/../../classes/departments.php";
-require_once __DIR__ . "/../../classes/roles.php";
 
 $pdoConnection = (new Database())->connect();
 $userObj = new Users($pdoConnection);
 $departmentObj = new Departments($pdoConnection);
-$roleObj = new Roles($pdoConnection);
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $userObj->first_name = $_POST["first_name"];
@@ -16,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $userObj->email = $_POST["email"];
     $userObj->password_hash = password_hash($_POST["password"], PASSWORD_DEFAULT);
     $userObj->departments_id = $_POST["department"];
-    $userObj->roles_id = $_POST["role"];
+    $userObj->role = $_POST["role"];
 
     if ($userObj->addUser()) {
         header("Location: index.php?page=user-management");
@@ -61,9 +59,9 @@ $users = $userObj->getAllUsers();
             <div class="form-group">
                 <label for="role">Role</label>
                 <select id="role" name="role" required>
-                    <?php foreach ($roleObj->getAllRoles() as $role) { ?>
-                        <option value="<?= $role["id"]; ?>"><?= $role["name"]; ?></option>
-                    <?php } ?>
+                    <option value="Requester">Requester</option>
+                    <option value="Processor">Processor</option>
+                    <option value="Admin">Admin</option>
                 </select>
             </div>
             <button type="submit" class="submit-button">Add User</button>
@@ -87,14 +85,13 @@ $users = $userObj->getAllUsers();
             <?php
                 $fullName = $user["first_name"] . " " . $user["last_name"];
                 $departmentName = $departmentObj->getDepartmentById($user["departments_id"])["name"];
-                $roleName = $roleObj->getRoleById($user["roles_id"])["name"];
             ?>
             <tr>
                 <td><?= htmlspecialchars($user["id"]) ?></td>
                 <td><?= htmlspecialchars($fullName) ?></td>
                 <td><?= htmlspecialchars($user["email"]) ?></td>
                 <td><?= htmlspecialchars($departmentName) ?></td>
-                <td><?= htmlspecialchars($roleName) ?></td>
+                <td><?= htmlspecialchars($user["role"]) ?></td>
             </tr>
         <?php endforeach; ?>
     </tbody>
