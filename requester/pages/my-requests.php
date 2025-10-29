@@ -14,14 +14,6 @@ $requestSupplyObj = new RequestSupplies($pdoConnection);
 
 $errors = [];
 
-if (isset($_GET["term"])) {
-    header("Content-Type: application/json");
-    $searchTerm = $_GET["term"] ?? "";
-    $suggestions = ($searchTerm !== "") ? $suppliesObj->searchSupplyNames($searchTerm) : [];
-    echo json_encode($suggestions);
-    exit();
-}
-
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (!isset($_POST["supplies"]) || empty($_POST["supplies"])) {
         $errors["supplies"] = "Please add at least one supply to the request.";
@@ -69,16 +61,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <label for="item-name">Supply Name</label>
                 <div id="supply-name-error" class="error-message"></div>
                 <input type="text" id="item-name" name="item-name" required 
-                list="supply-suggestions" autocomplete="off">
-                <datalist id="supply-suggestions">
-                    <!-- Suggestions will be appear here -->
-                </datalist>
+                autocomplete="off" placeholder="Start typing a supply name...">
+                <div id="supply-search-results">
+                    <!-- Search results will appear here -->
+                </div>
             </div>
             <div class="form-group">
                 <label for="quantity">Quantity (Per Unit)</label>
                 <div id="quantity-error" class="error-message"></div>
-                <input type="number" id="quantity" name="quantity" required 
-                min="1">
+                <input type="number" id="quantity" name="quantity" required min="1">
             </div>
 
             <button type="button" class="add-supply-name-button">Add Supply to List</button>
@@ -104,7 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <!-- Hidden inputs for supplies will appear here -->
             </div>
             <button type="submit" class="submit-request-button">Submit Request</button>
-            <p><?= $errors["supplies"] ?? "" ?></p>
+            <p id="main-request-error" class="error-message"><?= $errors["supplies"] ?? "" ?></p>
         </form>
     </div>
 </div>
@@ -124,7 +115,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </tr>
     </thead>
     <tbody>
-        <?php foreach ($requestsObj->getAllRequestsByRequesterId($_SESSION["user_id"]) as $request): ?>
+        <?php foreach ($requestsObj->getAllRequestsByRequesterId($_SESSION["user_id"]) as $request): 
+            if (in_array($request["status"], [RequestStatus::Released->value, RequestStatus::Denied->value]))
+                continue;    
+        ?>
             <?php
                 $processorName = "N/A";
                 if (!empty($request["processors_id"])) {
@@ -189,5 +183,4 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </tbody>
 </table>
 
-<script src="../assets/addRequestLiveTable.js"></script>
-<script src="../assets/addRequestSupplySuggestion.js"></script>
+<script src="../assets/handleNewRequestForm.js"></script>
