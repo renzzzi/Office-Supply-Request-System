@@ -33,6 +33,18 @@ class Supplies
         return $query->execute();
     }
 
+    public function deductStock($supplyId, $quantityToDeduct)
+    {
+        $sql = "UPDATE supplies SET stock_quantity = stock_quantity - :quantity WHERE id = :id";
+        
+        $query = $this->pdo->prepare($sql);
+        
+        return $query->execute([
+            ':quantity' => $quantityToDeduct,
+            ':id' => $supplyId
+        ]);
+    }
+
     public function viewAllSupply($search = "")
     {
     $sql = "SELECT * FROM supplies WHERE name LIKE CONCAT('%', :search, '%') 

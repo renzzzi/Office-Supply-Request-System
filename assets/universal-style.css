@@ -25,6 +25,11 @@
   color: var(--color-surface);
 }
 
+.low-stock {
+    color: #D8000C;
+    font-weight: bold;
+}
+
 .panel-body {
     display: flex;
     background-color: var(--color-background);

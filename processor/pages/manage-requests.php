@@ -48,6 +48,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
     }
     elseif ($action === "release") 
     {
+        $suppliesToRelease = $requestSuppliesObj->getSuppliesByRequestId($request_id);
+    
+        foreach ($suppliesToRelease as $supply) {
+            $suppliesObj->deductStock($supply['supplies_id'], $supply['supply_quantity']);
+        }
+    
         $requestsObj->setReleasedToId($request_id, $_POST["released_to_id"]);
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Released);
     }

@@ -7,7 +7,7 @@ require_once __DIR__ . "/../classes/users.php";
 
 $term = $_GET["term"] ?? "";
 
-if (strlen($term) < 2) 
+if (strlen($term) < 1) 
 {
     echo json_encode([]);
     exit();
