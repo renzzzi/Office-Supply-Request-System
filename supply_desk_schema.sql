@@ -36,10 +36,13 @@ CREATE TABLE requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     requesters_id INT NOT NULL,
     processors_id INT,
-    requested_date DATETIME NOT NULL,
-    ready_date DATETIME,
-    finished_date DATETIME,
-    status ENUM('Pending', 'Ready For Pickup', 'Completed', 'Denied') NOT NULL DEFAULT 'Pending',
+
+    requested_date DATETIME NOT NULL, -- When the request was made
+    claimed_date DATETIME, -- When a processor claims and starts working on the request
+    ready_date DATETIME, -- When the request is now ready for pickup
+    finished_date DATETIME, -- When the request has either been picked up or denied
+    
+    status ENUM('Pending', 'Claimed', 'Ready For Pickup', 'Completed', 'Denied') NOT NULL DEFAULT 'Pending',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     requesters_message TEXT,
     processors_remark TEXT,

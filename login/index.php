@@ -3,8 +3,6 @@
 session_start();
 require_once __DIR__ . "/../classes/database.php";
 require_once __DIR__ . "/../classes/users.php";
-require_once __DIR__ . "/../classes/roles.php";
-
 
 $pdoConnection = (new Database())->connect();
 

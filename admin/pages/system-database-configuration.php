@@ -13,6 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $supplyObj->supply_categories_id = $_POST["category_id"];
     $supplyObj->unit_of_supply = $_POST["unit_of_supply"];
     $supplyObj->price_per_unit = $_POST["price_per_unit"];
+    $supplyObj->stock_quantity = $_POST["stock_quantity"];
 
     if ($supplyObj->addSupply()) {
         header("Location: index.php?page=system-database-configuration");
@@ -43,12 +44,16 @@ $supplies = $supplyObj->viewAllSupply();
                 </select>
             </div>
             <div class="form-group">
-                <label for="unit_of_supply">Unit Of Supply (e.g., box, piece, ream)</label>
+                <label for="unit_of_supply">Unit Of Supply (e.g. Box, Piece, Ream)</label>
                 <input type="text" id="unit_of_supply" name="unit_of_supply" required>
             </div>
             <div class="form-group">
                 <label for="price_per_unit">Price Per Unit</label>
                 <input type="number" step="0.01" id="price_per_unit" name="price_per_unit" required>
+            </div>
+            <div class="form-group">
+                <label for="stock_quantity">Initial Stock Quantity</label>
+                <input type="number" id="stock_quantity" name="stock_quantity" required>
             </div>
             <button type="submit" class="submit-button">Add Supply</button>
         </form>
@@ -74,6 +79,7 @@ $supplies = $supplyObj->viewAllSupply();
                 <td><?= htmlspecialchars($categoryObj->getSupplyCategoryById($supply["supply_categories_id"])["name"]); ?></td>
                 <td><?= htmlspecialchars($supply["unit_of_supply"]); ?></td>
                 <td><?= htmlspecialchars("₱" . number_format($supply["price_per_unit"], 2)); ?></td>
+                <td><?= htmlspecialchars($supply["stock_quantity"]); ?></td>
             </tr>
         <?php } ?>
     </tbody>
