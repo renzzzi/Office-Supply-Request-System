@@ -96,7 +96,7 @@ INSERT INTO supply_categories (name) VALUES
 ('Paper Products'),
 ('Electronics');
 
-INSERT INTO users (first_name, last_name, email, password_hash, departments_id, roles) VALUES
+INSERT INTO users (first_name, last_name, email, password_hash, departments_id, role) VALUES
 ('re', 're', 're@re.re', '$2y$10$Mc7x5V7o5griHt9ddJDu6e/FDslFoAjMdN2fgDdEoethCZd4plQfW', 1, 'Requester'),
 ('pr', 'pr', 'pr@pr.pr', '$2y$10$1sTu0XqSQFtQLh6qCsMPY.3F0eP50879l9Yw46Bxgd5J48Og98u5W', 2, 'Processor'),
 ('ad', 'ad', 'ad@ad.ad', '$2y$10$Jwy6bUyLhsIKyjoq25hrSeoLOuFsdIrMQFomGw247x6A3wMwArc2S', 3, 'Admin');

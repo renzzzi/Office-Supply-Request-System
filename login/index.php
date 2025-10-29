@@ -9,7 +9,6 @@ require_once __DIR__ . "/../classes/roles.php";
 $pdoConnection = (new Database())->connect();
 
 $userObj = new Users($pdoConnection);
-$roleObj = new Roles($pdoConnection);
 
 $userInput = [];
 $errors = [];
@@ -42,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
             session_regenerate_id(true);
             $_SESSION["user_id"] = $user["id"];
             $_SESSION["user_first_name"] = $user["first_name"];
-            $_SESSION["user_role"] = $roleObj->getRoleById($user["roles_id"])["name"];
+            $_SESSION["user_role"] = $user["role"];
 
             // Role check
             if ($_SESSION["user_role"] === "Admin")
@@ -56,6 +55,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
             else if ($_SESSION["user_role"] === "Requester")
             {
                 header("Location: ../requester");
+            }
+            else
+            {
+                header("Location: logout.php");
             }
             exit();
         }
