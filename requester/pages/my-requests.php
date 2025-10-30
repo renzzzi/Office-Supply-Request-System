@@ -120,12 +120,36 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 continue;    
         ?>
             <?php
+                // Processor Name
                 $processorName = "N/A";
-                if (!empty($request["processors_id"])) {
+                if (!empty($request["processors_id"])) 
+                {
                     $processor = $usersObj->getUserById($request["processors_id"]);
-                    if ($processor) {
+                    if ($processor) 
+                    {
                         $processorName = $processor["first_name"] . " " . $processor["last_name"];
                     }
+                }
+
+                // Status Background
+                $statusClass = "";
+                switch ($request["status"]) 
+                {
+                    case RequestStatus::Pending->value:
+                        $statusClass = "pending-status";
+                        break;
+                    case RequestStatus::Claimed->value:
+                        $statusClass = "claimed-status";
+                        break;
+                    case RequestStatus::Ready->value:
+                        $statusClass = "ready-status";
+                        break;
+                    case RequestStatus::Released->value:
+                        $statusClass = "released-status";
+                        break;
+                    case RequestStatus::Denied->value:
+                        $statusClass = "denied-status";
+                        break;
                 }
             ?>
             <tr>
@@ -134,7 +158,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($request["claimed_date"] ?? "N/A") ?></td>
                 <td><?= htmlspecialchars($request["ready_date"] ?? "N/A") ?></td>
-                <td><?= htmlspecialchars($request["status"]) ?></td>
+                <td class="<?= $statusClass ?>"><?= htmlspecialchars($request["status"]) ?></td>
             </tr>
         <?php endforeach; ?>
     </tbody>
@@ -161,12 +185,47 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 continue;
         ?>
             <?php
+                // Processor Name
                 $processorName = "N/A";
-                if (!empty($request["processors_id"])) {
+                if (!empty($request["processors_id"])) 
+                {
                     $processor = $usersObj->getUserById($request["processors_id"]);
-                    if ($processor) {
+                    if ($processor) 
+                    {
                         $processorName = $processor["first_name"] . " " . $processor["last_name"];
                     }
+                }
+                
+                // Released To Name
+                $releasedToName = "N/A";
+                if (!empty($request["released_to_id"])) 
+                {
+                    $releasedToUser = $usersObj->getUserById($request["released_to_id"]);
+                    if ($releasedToUser) 
+                    {
+                        $releasedToName = $releasedToUser["first_name"] . " " . $releasedToUser["last_name"];
+                    }
+                }
+
+                // Status Background
+                $statusClass = "";
+                switch ($request["status"]) 
+                {
+                    case RequestStatus::Pending->value:
+                        $statusClass = "pending-status";
+                        break;
+                    case RequestStatus::Claimed->value:
+                        $statusClass = "claimed-status";
+                        break;
+                    case RequestStatus::Ready->value:
+                        $statusClass = "ready-status";
+                        break;
+                    case RequestStatus::Released->value:
+                        $statusClass = "released-status";
+                        break;
+                    case RequestStatus::Denied->value:
+                        $statusClass = "denied-status";
+                        break;
                 }
             ?>
             <tr>
@@ -176,8 +235,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <td><?= htmlspecialchars($request["claimed_date"] ?? "N/A") ?></td>
                 <td><?= htmlspecialchars($request["ready_date"] ?? "N/A") ?></td>
                 <td><?= htmlspecialchars($request["finished_date"] ?? "N/A") ?></td>
-                <td><?= htmlspecialchars($usersObj->getUserById($request["released_to_id"])["first_name"] . " " . $usersObj->getUserById($request["released_to_id"])["last_name"]) ?></td>
-                <td><?= htmlspecialchars($request["status"]) ?></td>
+                <td><?= htmlspecialchars($releasedToName) ?></td>
+                <td class="<?= $statusClass ?>"><?= htmlspecialchars($request["status"]) ?></td>
             </tr>
         <?php endforeach; ?>
     </tbody>

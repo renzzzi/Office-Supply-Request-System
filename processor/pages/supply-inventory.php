@@ -21,9 +21,9 @@ $lowStockThreshold = 5;
         <tr>
             <th>Supply Name</th>
             <th>Category</th>
-            <th>Current Stock</th>
             <th>Unit Of Supply</th>
             <th>Price per Unit</th>
+            <th>Current Stock</th>
         </tr>
     </thead>
     <tbody>
@@ -31,14 +31,14 @@ $lowStockThreshold = 5;
             <?php
                 $category = $categoryObj->getSupplyCategoryById($supply["supply_categories_id"]);
                 $categoryName = $category ? $category["name"] : "N/A";
-                $stockClass = ($supply["stock_quantity"] < $lowStockThreshold) ? 'low-stock' : '';
+                $stockClass = ($supply["stock_quantity"] <= $lowStockThreshold) ? "low-stock" : "";
             ?>
             <tr>
                 <td><?= htmlspecialchars($supply["name"]) ?></td>
                 <td><?= htmlspecialchars($categoryName) ?></td>
-                <td class="<?= $stockClass ?>"><?= htmlspecialchars($supply["stock_quantity"]) ?></td>
                 <td><?= htmlspecialchars($supply["unit_of_supply"]) ?></td>
                 <td><?= htmlspecialchars("₱" . number_format($supply["price_per_unit"], 2)) ?></td>
+                <td class="<?= $stockClass ?>"><?= htmlspecialchars($supply["stock_quantity"]) ?></td>
             </tr>
         <?php endforeach; ?>
     </tbody>

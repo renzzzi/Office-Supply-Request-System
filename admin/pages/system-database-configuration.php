@@ -92,6 +92,7 @@ $categories = $categoryObj->getAllSupplyCategories();
 
 <!-- Supplies Table -->
 <h2>Supplies</h2>
+<button class="open-button" data-target="#add-supply-modal">Add Supply</button>
 <table border="1">
     <thead>
         <tr>
@@ -116,10 +117,10 @@ $categories = $categoryObj->getAllSupplyCategories();
         <?php } ?>
     </tbody>
 </table>
-<button class="open-button" data-target="#add-supply-modal">Add Supply</button>
 
 <!-- Supply Categories Table -->
 <h2>Supply Categories</h2>
+<button class="open-button" data-target="#add-category-modal">Add Supply Category</button>
 <table border=1>
     <thead>
         <tr>
@@ -136,4 +137,3 @@ $categories = $categoryObj->getAllSupplyCategories();
         <?php } ?>
     </tbody>
 </table>
-<button class="open-button" data-target="#add-category-modal">Add Supply Category</button>

@@ -77,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                 </tr>
             </thead>
             <tbody id="supply-details-tbody">
-                <!-- Supply details will be loaded here by JavaScript -->
+                <!-- Supply details will appear here -->
             </tbody>
         </table>
     </div>
@@ -92,7 +92,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
 
         <form action="index.php?page=manage-requests" method="POST" id="prepare-supplies-form">
             <div id="prepare-supplies-list">
-                <!-- Supplies will be dynamically inserted here by JavaScript -->
+                <!-- Supplies will appear here -->
             </div>
 
             <p id="prepare-form-error" class="error-message" style="display: none;"></p>
@@ -115,8 +115,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
             <div class="form-group">
                 <label for="user-search">Search for User by Name</label>
                 <input type="text" id="user-search" autocomplete="off" placeholder="Start typing a name...">
-                <!-- Search results will appear here -->
-                <div id="user-search-results"></div>
+                <div id="user-search-results">
+                    <!-- Search results will appear here -->
+                </div>
             </div>
 
             <input type="hidden" id="released-to-user-id" name="released_to_id" required>
@@ -154,6 +155,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                     {
                         $departmentName = $department["name"];
                     }
+                }
+
+                $statusClass = "";
+                switch ($request["status"]) 
+                {
+                    case RequestStatus::Pending->value:
+                        $statusClass = "pending-status";
+                        break;
+                    case RequestStatus::Claimed->value:
+                        $statusClass = "claimed-status";
+                        break;
+                    case RequestStatus::Ready->value:
+                        $statusClass = "ready-status";
+                        break;
+                    case RequestStatus::Released->value:
+                        $statusClass = "released-status";
+                        break;
+                    case RequestStatus::Denied->value:
+                        $statusClass = "denied-status";
+                        break;
                 }
 
                 /*
@@ -199,11 +220,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                 <?php else: ?>
                     <td><?= $finalSummary ?></td>
                 <?php endif; ?>
-                <td><?= htmlspecialchars($request["status"]) ?></td>
+                <td class="<?= $statusClass ?>"><?= htmlspecialchars($request["status"]) ?></td>
                 <td>
                     <form action="index.php?page=manage-requests" method="POST">
                         <input type="hidden" name="request_id" value="<?= htmlspecialchars($request["id"]) ?>">
-                        <button type="submit" name="action" value="claim">Claim</button>
+                        <button type="submit" name="action" value="claim" class="claim-button">Claim</button>
                     </form>
                 </td>
             </tr>
@@ -239,6 +260,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                     {
                         $departmentName = $department["name"];
                     }
+                }
+
+                $statusClass = "";
+                switch ($request["status"]) 
+                {
+                    case RequestStatus::Pending->value:
+                        $statusClass = "pending-status";
+                        break;
+                    case RequestStatus::Claimed->value:
+                        $statusClass = "claimed-status";
+                        break;
+                    case RequestStatus::Ready->value:
+                        $statusClass = "ready-status";
+                        break;
+                    case RequestStatus::Released->value:
+                        $statusClass = "released-status";
+                        break;
+                    case RequestStatus::Denied->value:
+                        $statusClass = "denied-status";
+                        break;
                 }
 
                 /*
@@ -285,7 +326,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                     <td><?= $finalSummary ?></td>
                 <?php endif; ?>
                 <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
-                <td><?= htmlspecialchars($request["status"]) ?></td>
+                <td class="<?= $statusClass ?>"><?= htmlspecialchars($request["status"]) ?></td>
                 <td>
                     <button type="button" class="open-button" 
                     data-target="#prepare-supplies-modal" 
@@ -294,7 +335,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                     </button>
                     <form action="index.php?page=manage-requests" method="POST">
                         <input type="hidden" name="request_id" value="<?= htmlspecialchars($request["id"]) ?>">
-                        <button type="submit" name="action" value="deny">Deny</button>
+                        <button type="submit" name="action" value="deny" class="deny-button">Deny</button>
                     </form>
                 </td>
             </tr>
@@ -331,6 +372,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                     {
                         $departmentName = $department["name"];
                     }
+                }
+
+                $statusClass = "";
+                switch ($request["status"]) 
+                {
+                    case RequestStatus::Pending->value:
+                        $statusClass = "pending-status";
+                        break;
+                    case RequestStatus::Claimed->value:
+                        $statusClass = "claimed-status";
+                        break;
+                    case RequestStatus::Ready->value:
+                        $statusClass = "ready-status";
+                        break;
+                    case RequestStatus::Released->value:
+                        $statusClass = "released-status";
+                        break;
+                    case RequestStatus::Denied->value:
+                        $statusClass = "denied-status";
+                        break;
                 }
 
                 /*
@@ -378,9 +439,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                 <?php endif; ?>
                 <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
                 <td><?= htmlspecialchars($request["ready_date"]) ?></td>
-                <td><?= htmlspecialchars($request["status"]) ?></td>
+                <td class="<?= $statusClass ?>"><?= htmlspecialchars($request["status"]) ?></td>
                 <td><button class="open-button" data-target="#release-modal" 
-                data-request-id="<?= htmlspecialchars($request["id"]) ?>">Release</button></td>
+                data-request-id="<?= htmlspecialchars($request["id"]) ?>">Release To</button></td>
             </tr>
         <?php endforeach; ?>
     </tbody>
@@ -415,6 +476,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                     {
                         $departmentName = $department["name"];
                     }
+                }
+
+                $statusClass = "";
+                switch ($request["status"]) 
+                {
+                    case RequestStatus::Pending->value:
+                        $statusClass = "pending-status";
+                        break;
+                    case RequestStatus::Claimed->value:
+                        $statusClass = "claimed-status";
+                        break;
+                    case RequestStatus::Ready->value:
+                        $statusClass = "ready-status";
+                        break;
+                    case RequestStatus::Released->value:
+                        $statusClass = "released-status";
+                        break;
+                    case RequestStatus::Denied->value:
+                        $statusClass = "denied-status";
+                        break;
                 }
 
                 /*
@@ -464,7 +545,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                 <td><?= htmlspecialchars($request["ready_date"]) ?></td>
                 <td><?= htmlspecialchars($request["finished_date"]) ?></td>
                 <td><?= htmlspecialchars($usersObj->getUserById($request["released_to_id"])["first_name"] . " " . $usersObj->getUserById($request["released_to_id"])["last_name"]) ?></td>
-                <td><?= htmlspecialchars($request["status"]) ?></td>
+                <td class="<?= $statusClass ?>"><?= htmlspecialchars($request["status"]) ?></td>
             </tr>
         <?php endforeach; ?>
     </tbody>
@@ -499,6 +580,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                     }
                 }
 
+                $statusClass = "";
+                switch ($request["status"]) 
+                {
+                    case RequestStatus::Pending->value:
+                        $statusClass = "pending-status";
+                        break;
+                    case RequestStatus::Claimed->value:
+                        $statusClass = "claimed-status";
+                        break;
+                    case RequestStatus::Ready->value:
+                        $statusClass = "ready-status";
+                        break;
+                    case RequestStatus::Released->value:
+                        $statusClass = "released-status";
+                        break;
+                    case RequestStatus::Denied->value:
+                        $statusClass = "denied-status";
+                        break;
+                }
+
                 /*
                     For displaying supply summary:
                     - If there are 2 or fewer supplies, list them all with quantities.
@@ -530,7 +631,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
             ?>
             <tr>
                 <td><?= htmlspecialchars($request["id"]) ?></td>
-                <td><?= htmlspecialchars($request["request_date"]) ?></td>
+                <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
                 <td><?= htmlspecialchars($departmentName) ?></td>
                 <?php if ($totalCount > 2): ?>
@@ -544,7 +645,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                 <?php endif; ?>
                 <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
                 <td><?= htmlspecialchars($request["finished_date"]) ?></td>
-                <td><?= htmlspecialchars($request["status"]) ?></td>
+                <td class="<?= $statusClass ?>"><?= htmlspecialchars($request["status"]) ?></td>
             </tr>
         <?php endforeach; ?>
     </tbody>

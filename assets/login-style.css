@@ -4,28 +4,28 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    padding: 2rem;
-    background-color: var(--color-background);
+    padding: 1rem;
+    background: var(--color-background);
 }
 
 .page-header {
     text-align: center;
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
 }
 
 .page-header h1 {
     color: var(--color-text-primary);
-    font-size: 2.5rem;
+    font-size: 2.25rem;
     font-weight: 700;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
 }
 
 .login-container {
     background-color: var(--color-surface);
-    padding: 2.5rem;
-    border-radius: 12px;
+    padding: 2rem 1.5rem;
+    border-radius: 16px;
     border: 1px solid var(--color-border);
-    box-shadow: 0 8px 32px var(--color-shadow);
+    box-shadow: 0 10px 35px -5px rgba(0, 0, 0, 0.3);
     width: 100%;
     max-width: 400px;
     text-align: left;
@@ -40,18 +40,23 @@
     color: var(--color-text-primary);
     font-size: 1.5rem;
     font-weight: 600;
-    margin-bottom: 0.5rem;
-    margin-top: 0.5rem;
+    margin: 0;
+}
+
+.login-form {
+    margin-top: 1.5rem;
 }
 
 .form-group {
     margin-bottom: 1.5rem;
+    position: relative;
 }
 
 .form-group label {
     display: block;
     color: var(--color-text-secondary);
     font-size: 0.9rem;
+    font-weight: 500;
     margin-bottom: 0.5rem;
 }
 
@@ -68,18 +73,18 @@
 
 .form-group input::placeholder {
     color: var(--color-text-secondary);
-    opacity: 0.6;
+    opacity: 0.5;
 }
 
 .form-group input:focus {
     outline: none;
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(127, 90, 240, 0.25);
+    box-shadow: 0 0 0 3px var(--color-primary-glow);
 }
 
 .login-button {
     width: 100%;
-    padding: 0.9rem 1rem;
+    padding: 1rem;
     background-color: var(--color-primary);
     color: var(--color-text-primary);
     border: none;
@@ -87,7 +92,8 @@
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease;
+    transition: background-color 0.2s ease;
+    margin-top: 1rem;
 }
 
 .login-button:hover {
@@ -95,7 +101,12 @@
 }
 
 .login-button:active {
-    transform: scale(0.95);
+    background-color: var(--color-primary);
+}
+
+.login-error {
+    text-align: center;
+    font-size: 1rem;
 }
 
 .login-footer {
@@ -113,4 +124,38 @@
 .forgot-password-link:hover {
     color: var(--color-primary);
     text-decoration: underline;
+}
+
+/* Large Desktop / Fullscreen Styles */
+@media (min-width: 1024px) {
+    .page-header {
+        margin-bottom: 3rem;
+    }
+    
+    .page-header h1 {
+        font-size: 3.25rem;
+    }
+
+    .login-container {
+        max-width: 550px;
+        padding: 3.5rem;
+    }
+
+    .login-header h2 {
+        font-size: 2rem;
+    }
+
+    .form-group label {
+        font-size: 1rem;
+    }
+    
+    .form-group input, 
+    .login-button {
+        font-size: 1.1rem;
+        padding: 1.2rem;
+    }
+
+    .login-error {
+        font-size: 1.2rem;
+    }
 }

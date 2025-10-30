@@ -100,6 +100,7 @@ $departments = $departmentObj->getAllDepartments();
 
 <!-- Users Table -->
 <h2>Users</h2>
+<button class="open-button" data-target="#add-user-modal">Add User</button>
 <table border="1" class="user-table">
     <thead>
         <tr>
@@ -127,10 +128,11 @@ $departments = $departmentObj->getAllDepartments();
     </tbody>
 </table>
 <span class="user-count">Total Users: <?= count($users) ?></span>
-<button class="open-button" data-target="#add-user-modal">Add User</button>
+
 
 <!-- Departments Modal -->
 <h2>Departments</h2>
+<button class="open-button" data-target="#add-department-modal">Add Department</button>
  <table border=1>
     <thead>
         <tr>
@@ -147,4 +149,3 @@ $departments = $departmentObj->getAllDepartments();
         <?php endforeach; ?>
     </tbody>
  </table>
- <button class="open-button" data-target="#add-department-modal">Add Department</button>

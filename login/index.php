@@ -88,7 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
                 <header class="login-header">
                     <h2>Log In</h2>
                 </header>
-                <p class="error"><?= $errors["input"] ?? "" ?></p>
+                <p class="error login-error"><?= $errors["input"] ?? "" ?></p>
                 <form action="" method="POST" class="login-form">
                     <div class="form-group">
                         <label for="email">Email Address</label>
