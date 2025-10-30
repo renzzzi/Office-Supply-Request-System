@@ -14,6 +14,7 @@ if (prepareModal) {
         }
 
         prepareErrorDiv.style.display = 'none';
+        prepareErrorDiv.textContent = '';
 
         const requestId = button.dataset.requestId;
         if (!requestId) {
@@ -21,7 +22,6 @@ if (prepareModal) {
         }
 
         hiddenRequestIdInput.value = requestId;
-
         suppliesListDiv.innerHTML = '<p>Loading supplies...</p>';
 
         try {
@@ -31,7 +31,6 @@ if (prepareModal) {
             }
             
             const supplies = await response.json();
-
             suppliesListDiv.innerHTML = '';
 
             if (supplies.length === 0) {
@@ -46,9 +45,16 @@ if (prepareModal) {
 
                 const itemHtml = `
                     <div class="form-group supply-item">
-                        <input type="checkbox" name="supplies[${supplyId}][enabled]" id="supply-${supplyId}" checked>
-                        <label for="supply-${supplyId}">${supplyName}</label>
-                        <input type="number" name="supplies[${supplyId}][quantity]" value="${requestedQuantity}" min="1" max="${requestedQuantity}">
+                        <span class="supply-name">${supplyName}</span>
+                        <div class="supply-controls">
+                            <input type="number" name="supplies[${supplyId}][quantity]" 
+                                   value="${requestedQuantity}" 
+                                   min="1" 
+                                   max="${requestedQuantity}" 
+                                   data-original-quantity="${requestedQuantity}">
+                            <input type="checkbox" name="supplies[${supplyId}][enabled]" id="supply-${supplyId}" checked>
+                            <label class="toggle-switch" for="supply-${supplyId}"></label>
+                        </div>
                     </div>
                 `;
                 suppliesListDiv.insertAdjacentHTML('beforeend', itemHtml);
@@ -61,25 +67,59 @@ if (prepareModal) {
     });
 
     prepareForm.addEventListener('submit', (event) => {
-        const checkedBoxes = suppliesListDiv.querySelectorAll('input[type="checkbox"]:checked');
+        let isValid = true;
+        let errorMessage = '';
 
-        if (checkedBoxes.length === 0) {
+        const checkedItems = suppliesListDiv.querySelectorAll('.supply-item input[type="checkbox"]:checked');
+
+        if (checkedItems.length === 0) {
+            isValid = false;
+            errorMessage = 'You must leave at least one supply checked. If none are available, deny the request instead.';
+        } else {
+            for (const checkbox of checkedItems) {
+                const parentDiv = checkbox.closest('.supply-item');
+                const quantityInput = parentDiv.querySelector('input[type="number"]');
+                const originalQuantity = parseInt(quantityInput.dataset.originalQuantity, 10);
+                const currentQuantity = parseInt(quantityInput.value, 10);
+                const supplyName = parentDiv.querySelector('.supply-name').textContent;
+
+                if (isNaN(currentQuantity) || currentQuantity <= 0) {
+                    isValid = false;
+                    errorMessage = `The quantity for "${supplyName}" must be at least 1.`;
+                    break;
+                }
+
+                if (currentQuantity > originalQuantity) {
+                    isValid = false;
+                    errorMessage = `The quantity for "${supplyName}" cannot exceed the originally requested amount of ${originalQuantity}.`;
+                    break;
+                }
+            }
+        }
+
+        if (!isValid) {
             event.preventDefault();
-
-            prepareErrorDiv.textContent = 'You must leave at least one supply checked. If none are available, deny the request instead.';
-            
+            prepareErrorDiv.textContent = errorMessage;
             prepareErrorDiv.style.display = 'block';
         } else {
             prepareErrorDiv.style.display = 'none';
         }
     });
-
+    
     suppliesListDiv.addEventListener('change', (event) => {
         if (event.target.type === 'checkbox') {
-            const checkedBoxes = suppliesListDiv.querySelectorAll('input[type="checkbox"]:checked');
-            if (checkedBoxes.length > 0) {
-                prepareErrorDiv.style.display = 'none';
+            const parentItem = event.target.closest('.supply-item');
+            const quantityInput = parentItem.querySelector('input[type="number"]');
+
+            if (event.target.checked) {
+                parentItem.classList.remove('item-disabled');
+                quantityInput.disabled = false;
+            } else {
+                parentItem.classList.add('item-disabled');
+                quantityInput.disabled = true;
             }
         }
+
+        prepareErrorDiv.style.display = 'none';
     });
 }

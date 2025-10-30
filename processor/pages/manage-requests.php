@@ -29,6 +29,49 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
         $originalSupplies = $requestSuppliesObj->getSuppliesByRequestId($request_id);
         $submittedSupplies = $_POST['supplies'] ?? [];
 
+        $isValid = true;
+        $errorMessage = "";
+
+        if (empty($submittedSupplies)) {
+            $isValid = false;
+            $errorMessage = "You must prepare at least one supply. Deny the request if none are available.";
+        } else {
+            $originalQuantitiesMap = [];
+            foreach ($originalSupplies as $supply) {
+                $originalQuantitiesMap[$supply['supplies_id']] = (int)$supply['supply_quantity'];
+            }
+
+            foreach ($submittedSupplies as $submittedId => $details) {
+                $submittedQuantity = (int)$details['quantity'];
+
+                if (!isset($originalQuantitiesMap[$submittedId])) {
+                    $isValid = false;
+                    $errorMessage = "An invalid supply was submitted that was not part of the original request.";
+                    break;
+                }
+
+                $originalQuantity = $originalQuantitiesMap[$submittedId];
+
+                if ($submittedQuantity <= 0) {
+                    $isValid = false;
+                    $errorMessage = "Supply quantity must be greater than zero.";
+                    break;
+                }
+
+                if ($submittedQuantity > $originalQuantity) {
+                    $isValid = false;
+                    $errorMessage = "A submitted quantity exceeds the amount originally requested.";
+                    break;
+                }
+            }
+        }
+        
+        if (!$isValid) {
+            $_SESSION['form_error'] = $errorMessage;
+            header("Location: index.php?page=manage-requests");
+            exit();
+        }
+
         foreach ($originalSupplies as $original) {
             $originalId = $original['supplies_id'];
 
@@ -41,6 +84,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
         }
 
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Ready);
+        $_SESSION['form_success'] = "Request #{$request_id} has been marked as Ready for Pickup.";
+
     }
     elseif ($action === "deny") 
     {
@@ -61,7 +106,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
     header("Location: index.php?page=manage-requests");
     exit();
 }
-
 ?>
 
 <!-- Supply Details Modal -->
@@ -95,7 +139,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                 <!-- Supplies will appear here -->
             </div>
 
-            <p id="prepare-form-error" class="error-message" style="display: none;"></p>
+            <p id="prepare-form-error" class="error-message error prepare-supplies-error" style="display: none;"></p>
 
             <input type="hidden" name="request_id" id="prepare-request-id">
             <input type="hidden" name="action" value="ready">
