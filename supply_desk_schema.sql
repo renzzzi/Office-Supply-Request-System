@@ -27,7 +27,8 @@ CREATE TABLE users (
     departments_id INT NOT NULL,
     role ENUM('Requester', 'Processor', 'Admin') NOT NULL DEFAULT 'Requester',
 
-    FOREIGN KEY (departments_id) REFERENCES departments(id)
+    CONSTRAINT fk_users_departments
+        FOREIGN KEY (departments_id) REFERENCES departments(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
@@ -48,10 +49,12 @@ CREATE TABLE requests (
     requesters_message TEXT,
     processors_remark TEXT,
 
-    FOREIGN KEY (requesters_id) REFERENCES users(id)
+    CONSTRAINT fk_requests_users_requester
+        FOREIGN KEY (requesters_id) REFERENCES users(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
-    FOREIGN KEY (processors_id) REFERENCES users(id)
+    CONSTRAINT fk_requests_users_processor
+        FOREIGN KEY (processors_id) REFERENCES users(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
@@ -66,10 +69,11 @@ CREATE TABLE supplies (
     supply_categories_id INT NOT NULL,
     name VARCHAR(50) UNIQUE NOT NULL,
     unit_of_supply VARCHAR(30) NOT NULL,
-    price_per_unit DECIMAL(8, 2) NOT NULL,
+    price_per_unit DECIMAL(8, 2) NOT NULL CHECK (price_per_unit > 0.0),
     stock_quantity INT NOT NULL CHECK (stock_quantity >= 0),
 
-    FOREIGN KEY (supply_categories_id) REFERENCES supply_categories(id)
+    CONSTRAINT fk_supplies_supply_categories
+        FOREIGN KEY (supply_categories_id) REFERENCES supply_categories(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
@@ -80,10 +84,13 @@ CREATE TABLE request_supplies (
     supply_quantity INT NOT NULL CHECK (supply_quantity > 0),
 
     PRIMARY KEY (requests_id, supplies_id),
-    FOREIGN KEY (requests_id) REFERENCES requests(id)
+
+    CONSTRAINT fk_request_supplies_requests
+        FOREIGN KEY (requests_id) REFERENCES requests(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
-    FOREIGN KEY (supplies_id) REFERENCES supplies(id)
+    CONSTRAINT fk_request_supplies_supplies
+        FOREIGN KEY (supplies_id) REFERENCES supplies(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
