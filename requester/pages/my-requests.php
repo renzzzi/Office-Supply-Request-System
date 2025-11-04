@@ -196,17 +196,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     }
                 }
                 
-                // Released To Name
-                $releasedToName = "N/A";
-                if (!empty($request["released_to_id"])) 
-                {
-                    $releasedToUser = $usersObj->getUserById($request["released_to_id"]);
-                    if ($releasedToUser) 
-                    {
-                        $releasedToName = $releasedToUser["first_name"] . " " . $releasedToUser["last_name"];
-                    }
-                }
-
                 // Status Background
                 $statusClass = "";
                 switch ($request["status"]) 
@@ -235,7 +224,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <td><?= htmlspecialchars($request["claimed_date"] ?? "N/A") ?></td>
                 <td><?= htmlspecialchars($request["ready_date"] ?? "N/A") ?></td>
                 <td><?= htmlspecialchars($request["finished_date"] ?? "N/A") ?></td>
-                <td><?= htmlspecialchars($releasedToName) ?></td>
+                <td><?= htmlspecialchars($request["released_to"]) ?></td>
                 <td class="<?= $statusClass ?>"><?= htmlspecialchars($request["status"]) ?></td>
             </tr>
         <?php endforeach; ?>
