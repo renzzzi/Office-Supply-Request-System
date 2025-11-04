@@ -35,13 +35,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
         if (empty($submittedSupplies)) {
             $isValid = false;
             $errorMessage = "You must prepare at least one supply. Deny the request if none are available.";
-        } else {
+        } 
+        else 
+        {
             $originalQuantitiesMap = [];
-            foreach ($originalSupplies as $supply) {
+            foreach ($originalSupplies as $supply) 
+            {
                 $originalQuantitiesMap[$supply['supplies_id']] = (int)$supply['supply_quantity'];
             }
 
-            foreach ($submittedSupplies as $submittedId => $details) {
+            foreach ($submittedSupplies as $submittedId => $details) 
+            {
                 $submittedQuantity = (int)$details['quantity'];
 
                 if (!isset($originalQuantitiesMap[$submittedId])) {
@@ -66,19 +70,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
             }
         }
         
-        if (!$isValid) {
+        if (!$isValid) 
+        {
             $_SESSION['form_error'] = $errorMessage;
             header("Location: index.php?page=manage-requests");
             exit();
         }
 
-        foreach ($originalSupplies as $original) {
+        foreach ($originalSupplies as $original) 
+        {
             $originalId = $original['supplies_id'];
 
-            if (isset($submittedSupplies[$originalId]['enabled'])) {
+            if (isset($submittedSupplies[$originalId]['enabled'])) 
+            {
                 $newQuantity = $submittedSupplies[$originalId]['quantity'];
                 $requestSuppliesObj->updateSupplyQuantity($request_id, $originalId, $newQuantity);
-            } else {
+            } 
+            else 
+            {
                 $requestSuppliesObj->removeSupplyFromRequest($request_id, $originalId);
             }
         }
@@ -95,7 +104,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
     {
         $suppliesToRelease = $requestSuppliesObj->getSuppliesByRequestId($request_id);
 
-        foreach ($suppliesToRelease as $supply) {
+        foreach ($suppliesToRelease as $supply) 
+        {
             $suppliesObj->deductStock($supply['supplies_id'], $supply['supply_quantity']);
         }
 
