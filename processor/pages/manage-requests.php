@@ -13,6 +13,7 @@ $requestSuppliesObj = new RequestSupplies($pdoConnection);
 $usersObj = new Users($pdoConnection);
 $departmentsObj = new Departments($pdoConnection);
 $suppliesObj = new Supplies($pdoConnection);
+$errorRelease = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"])) 
 {
@@ -23,6 +24,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
     {
         $requestsObj->setProcessorId($request_id, $_SESSION["user_id"]);
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Claimed);
+        header("Location: index.php?page=manage-requests");
+        exit();
     } 
     elseif ($action === "ready") 
     {
@@ -94,27 +97,38 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
 
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Ready);
         $_SESSION['form_success'] = "Request #{$request_id} has been marked as Ready for Pickup.";
+        header("Location: index.php?page=manage-requests");
+        exit();
 
     }
     elseif ($action === "deny") 
     {
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Denied);
+        header("Location: index.php?page=manage-requests");
+        exit();
     }
     elseif ($action === "release") 
     {
-        $suppliesToRelease = $requestSuppliesObj->getSuppliesByRequestId($request_id);
-
-        foreach ($suppliesToRelease as $supply) 
+        if (empty(trim($_POST["released_to"])))
         {
-            $suppliesObj->deductStock($supply['supplies_id'], $supply['supply_quantity']);
+            $errorRelease = "Please enter the receiver's name.";
         }
+        else
+        {
+            $suppliesToRelease = $requestSuppliesObj->getSuppliesByRequestId($request_id);
+    
+            foreach ($suppliesToRelease as $supply) 
+            {
+                $suppliesObj->deductStock($supply['supplies_id'], $supply['supply_quantity']);
+            }
+        
+            $requestsObj->setReleasedTo($request_id, $_POST["released_to"]);
+            $requestsObj->updateRequestStatus($request_id, RequestStatus::Released);
 
-        $requestsObj->setReleasedToId($request_id, $_POST["released_to_id"]);
-        $requestsObj->updateRequestStatus($request_id, RequestStatus::Released);
+            header("Location: index.php?page=manage-requests");
+            exit();
+        }
     }
-
-    header("Location: index.php?page=manage-requests");
-    exit();
 }
 ?>
 
@@ -165,20 +179,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
         <span class="close-button">&times;</span>
         <h2>Who are you releasing this to?</h2>
 
-        <form action="index.php?page=manage-requests" method="POST">
+        <form action="index.php?page=manage-requests" method="POST" id="release-form">
             <div class="form-group">
-                <label for="user-search">Search for User by Name</label>
-                <input type="text" id="user-search" autocomplete="off" placeholder="Start typing a name...">
-                <div id="user-search-results">
-                    <!-- Search results will appear here -->
-                </div>
+                <label for="receiver-input">Name of the receiver</label>
+                <input type="text" id="receiver-input" name="released_to" placeholder="Name">
             </div>
 
-            <input type="hidden" id="released-to-user-id" name="released_to_id" required>
+            <p class="error-message error" id="release-error-message" style="display: none;"></p>
+
             <input type="hidden" name="request_id" id="release-request-id">
             <input type="hidden" name="action" value="release">
 
-            <button type="submit" class="submit-button" id="release-submit-button" disabled>Release</button>
+            <button type="submit" class="submit-button">Release</button>
         </form>
     </div>
 </div>
@@ -231,12 +243,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                         break;
                 }
 
-                /*
-                    For displaying supply summary:
-                    - If there are 2 or fewer supplies, list them all with quantities.
-                    - If there are more than 2 supplies, list both supplies with quantity and indicate
-                    ". . . and x more" where x is the number of the remaining supplies.
-                */
                 $supplySummary = $requestSuppliesObj->getSupplySummaryByRequestId($request["id"]);
                 $totalCount = $requestSuppliesObj->getSupplyCountByRequestId($request["id"]);
                 $finalSummary = ""; 
@@ -336,12 +342,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                         break;
                 }
 
-                /*
-                    For displaying supply summary:
-                    - If there are 2 or fewer supplies, list them all with quantities.
-                    - If there are more than 2 supplies, list both supplies with quantity and indicate
-                    ". . . and x more" where x is the number of the remaining supplies.
-                */
                 $supplySummary = $requestSuppliesObj->getSupplySummaryByRequestId($request["id"]);
                 $totalCount = $requestSuppliesObj->getSupplyCountByRequestId($request["id"]);
                 $finalSummary = ""; 
@@ -448,12 +448,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                         break;
                 }
 
-                /*
-                    For displaying supply summary:
-                    - If there are 2 or fewer supplies, list them all with quantities.
-                    - If there are more than 2 supplies, list both supplies with quantity and indicate
-                    ". . . and x more" where x is the number of the remaining supplies.
-                */
                 $supplySummary = $requestSuppliesObj->getSupplySummaryByRequestId($request["id"]);
                 $totalCount = $requestSuppliesObj->getSupplyCountByRequestId($request["id"]);
                 $finalSummary = ""; 
@@ -552,12 +546,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                         break;
                 }
 
-                /*
-                    For displaying supply summary:
-                    - If there are 2 or fewer supplies, list them all with quantities.
-                    - If there are more than 2 supplies, list both supplies with quantity and indicate
-                    ". . . and x more" where x is the number of the remaining supplies.
-                */
                 $supplySummary = $requestSuppliesObj->getSupplySummaryByRequestId($request["id"]);
                 $totalCount = $requestSuppliesObj->getSupplyCountByRequestId($request["id"]);
                 $finalSummary = ""; 
@@ -598,7 +586,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                 <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
                 <td><?= htmlspecialchars($request["ready_date"]) ?></td>
                 <td><?= htmlspecialchars($request["finished_date"]) ?></td>
-                <td><?= htmlspecialchars($usersObj->getUserById($request["released_to_id"])["first_name"] . " " . $usersObj->getUserById($request["released_to_id"])["last_name"]) ?></td>
+                <td><?= htmlspecialchars($request["released_to"]) ?></td>
                 <td class="<?= $statusClass ?>"><?= htmlspecialchars($request["status"]) ?></td>
             </tr>
         <?php endforeach; ?>
@@ -654,12 +642,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                         break;
                 }
 
-                /*
-                    For displaying supply summary:
-                    - If there are 2 or fewer supplies, list them all with quantities.
-                    - If there are more than 2 supplies, list both supplies with quantity and indicate
-                    ". . . and x more" where x is the number of the remaining supplies.
-                */
                 $supplySummary = $requestSuppliesObj->getSupplySummaryByRequestId($request["id"]);
                 $totalCount = $requestSuppliesObj->getSupplyCountByRequestId($request["id"]);
                 $finalSummary = ""; 
@@ -705,6 +687,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
     </tbody>
 </table>
 
-<script src="../assets/searchForUsers.js"></script>
 <script src="../assets/prepareSupplyListRequest.js"></script>
 <script src="../assets/viewRequestSuppliesDetails.js"></script>
+<script src="../assets/releaseModalValidation.js"></script>

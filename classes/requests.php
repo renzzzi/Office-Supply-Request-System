@@ -20,7 +20,7 @@ class Requests
     public $id = "";
     public $requesters_id = "";
     public $processors_id = ""; // nullable
-    public $released_to_id = ""; // nullable
+    public $released_to = ""; // nullable
 
     public $requested_date = "";
     public $claimed_date = ""; //nullable
@@ -89,12 +89,12 @@ class Requests
         return $query->execute();
     }
 
-    public function setReleasedToId($requestId = "", $releasedToId = "")
+    public function setReleasedTo($requestId = "", $releasedTo = "")
     {
-        $sql = "UPDATE requests SET released_to_id = :released_to_id WHERE id = :id";
+        $sql = "UPDATE requests SET released_to = :released_to WHERE id = :id";
 
         $query = $this->pdo->prepare($sql);
-        $query->bindParam(":released_to_id", $releasedToId);
+        $query->bindParam(":released_to", $releasedTo);
         $query->bindParam(":id", $requestId);
 
         return $query->execute();

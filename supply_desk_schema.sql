@@ -36,7 +36,7 @@ CREATE TABLE requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     requesters_id INT NOT NULL,
     processors_id INT,
-    released_to_id INT, -- ID of the user who will pick up the supplies
+    released_to VARCHAR(100), -- Name of the user who will pick up the supplies
 
     requested_date DATETIME NOT NULL, -- When the request was made
     claimed_date DATETIME, -- When a processor claims and starts working on the request
@@ -52,9 +52,6 @@ CREATE TABLE requests (
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
     FOREIGN KEY (processors_id) REFERENCES users(id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT,
-    FOREIGN KEY (released_to_id) REFERENCES users(id)
         ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
