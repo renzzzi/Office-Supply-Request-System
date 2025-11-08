@@ -12,6 +12,23 @@ $usersObj = new Users($pdoConnection);
 $suppliesObj = new Supplies($pdoConnection);
 $requestSupplyObj = new RequestSupplies($pdoConnection);
 
+// Max records per page
+$records_per_page = 5;
+
+
+$page_ongoing = isset($_GET['page_ongoing']) && is_numeric($_GET['page_ongoing']) ? (int)$_GET['page_ongoing'] : 1;
+$offset_ongoing = ($page_ongoing - 1) * $records_per_page;
+$ongoing_statuses = [RequestStatus::Pending->value, RequestStatus::Claimed->value, RequestStatus::Ready->value];
+$total_ongoing = $requestsObj->getRequestCountByRequesterId($_SESSION['user_id'], $ongoing_statuses);
+$total_pages_ongoing = $total_ongoing > 0 ? ceil($total_ongoing / $records_per_page) : 1;
+$ongoing_requests = $requestsObj->getAllRequestsByRequesterId($_SESSION['user_id'], $ongoing_statuses, $records_per_page, $offset_ongoing);
+$page_finished = isset($_GET['page_finished']) && is_numeric($_GET['page_finished']) ? (int)$_GET['page_finished'] : 1;
+$offset_finished = ($page_finished - 1) * $records_per_page;
+$finished_statuses = [RequestStatus::Released->value, RequestStatus::Denied->value];
+$total_finished = $requestsObj->getRequestCountByRequesterId($_SESSION['user_id'], $finished_statuses);
+$total_pages_finished = $total_finished > 0 ? ceil($total_finished / $records_per_page) : 1;
+$finished_requests = $requestsObj->getAllRequestsByRequesterId($_SESSION['user_id'], $finished_statuses, $records_per_page, $offset_finished);
+
 $errors = [];
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -100,135 +117,145 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </div>
 </div>
 
-<!-- Ongoing Requests Table -->
-<h2>Ongoing Requests</h2>
-<button class="open-button" data-target="#add-request-modal">Add New Request</button>
-<table border=1>
-    <thead>
-        <tr>
-            <th>Request ID</th>
-            <th>Processor Name</th>
-            <th>Date Requested</th>
-            <th>Date Claimed</th>
-            <th>Date Ready For Pickup</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php foreach ($requestsObj->getAllRequestsByRequesterId($_SESSION["user_id"]) as $request): 
-            if (in_array($request["status"], [RequestStatus::Released->value, RequestStatus::Denied->value]))
-                continue;    
-        ?>
-            <?php
-                // Processor Name
-                $processorName = "N/A";
-                if (!empty($request["processors_id"])) 
-                {
-                    $processor = $usersObj->getUserById($request["processors_id"]);
-                    if ($processor) 
-                    {
-                        $processorName = $processor["first_name"] . " " . $processor["last_name"];
-                    }
-                }
+<div class="page-controls">
+    <button class="open-button" data-target="#add-request-modal">Add New Request</button>
+    
+    <!-- Report Generation Dropdown -->
+    <div class="report-dropdown">
+        <button id="report-menu-btn" class="btn">Generate Report &#9662;</button>
+        <div id="report-dropdown-menu" class="dropdown-menu">
+            <a href="pages/print-report.php?report_type=all" target="_blank">Print All Requests</a>
+            <a href="../api/generate-my-requests-csv.php?report_type=all">Download All (CSV)</a>
+            <hr>
+            <a href="pages/print-report.php?report_type=completed_90_days" target="_blank">Print Finished (90 Days)</a>
+            <a href="../api/generate-my-requests-csv.php?report_type=completed_90_days">Download Finished (CSV)</a>
+            <hr>
+            <a href="pages/print-report.php?report_type=in_progress" target="_blank">Print Ongoing</a>
+            <a href="../api/generate-my-requests-csv.php?report_type=in_progress">Download Ongoing (CSV)</a>
+        </div>
+    </div>
+</div>
 
-                // Status Background
-                $statusClass = "";
-                switch ($request["status"]) 
-                {
-                    case RequestStatus::Pending->value:
-                        $statusClass = "pending-status";
-                        break;
-                    case RequestStatus::Claimed->value:
-                        $statusClass = "claimed-status";
-                        break;
-                    case RequestStatus::Ready->value:
-                        $statusClass = "ready-status";
-                        break;
-                    case RequestStatus::Released->value:
-                        $statusClass = "released-status";
-                        break;
-                    case RequestStatus::Denied->value:
-                        $statusClass = "denied-status";
-                        break;
-                }
-            ?>
+<div id="requests-tables-container">
+    <!-- Ongoing Requests Table -->
+    <h2>Ongoing Requests</h2>
+    <table border=0>
+        <thead>
             <tr>
-                <td><?= htmlspecialchars($request["id"]) ?></td>
-                <td><?= htmlspecialchars($processorName) ?></td>
-                <td><?= htmlspecialchars($request["requested_date"]) ?></td>
-                <td><?= htmlspecialchars($request["claimed_date"] ?? "N/A") ?></td>
-                <td><?= htmlspecialchars($request["ready_date"] ?? "N/A") ?></td>
-                <td class="<?= $statusClass ?>"><?= htmlspecialchars($request["status"]) ?></td>
+                <th>Request ID</th>
+                <th>Processor Name</th>
+                <th>Date Requested</th>
+                <th>Date Claimed</th>
+                <th>Date Ready For Pickup</th>
+                <th>Status</th>
             </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            <?php if (empty($ongoing_requests)): ?>
+                <tr class="empty-table-message">
+                    <td colspan="6">No ongoing requests to display.</td>
+                </tr>
+            <?php else: ?>
+                <?php foreach ($ongoing_requests as $request): ?>
+                    <?php
+                        $processorName = "N/A";
+                        if (!empty($request["processors_id"])) {
+                            $processor = $usersObj->getUserById($request["processors_id"]);
+                            $processorName = $processor ? htmlspecialchars($processor["first_name"] . " " . $processor["last_name"]) : "N/A";
+                        }
+                    ?>
+                    <tr class="<?= strtolower(str_replace(' ', '-', $request["status"])) ?>-status">
+                        <td><?= htmlspecialchars($request["id"]) ?></td>
+                        <td><?= $processorName ?></td>
+                        <td><?= htmlspecialchars($request["requested_date"]) ?></td>
+                        <td><?= htmlspecialchars($request["claimed_date"] ?? "N/A") ?></td>
+                        <td><?= htmlspecialchars($request["ready_date"] ?? "N/A") ?></td>
+                        <td><?= htmlspecialchars($request["status"]) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </tbody>
+    </table>
 
-<!-- Finished Requests Table -->
-<h2>Finished Requests</h2>
-<table border=1>
-    <thead>
-        <tr>
-            <th>Request ID</th>
-            <th>Processor Name</th>
-            <th>Date Requested</th>
-            <th>Date Claimed</th>
-            <th>Date Ready For Pickup</th>
-            <th>Date Finished</th>
-            <th>Released To</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php foreach ($requestsObj->getAllRequestsByRequesterId($_SESSION["user_id"]) as $request): 
-            if (!in_array($request["status"], [RequestStatus::Released->value, RequestStatus::Denied->value]))
-                continue;
-        ?>
-            <?php
-                // Processor Name
-                $processorName = "N/A";
-                if (!empty($request["processors_id"])) 
-                {
-                    $processor = $usersObj->getUserById($request["processors_id"]);
-                    if ($processor) 
-                    {
-                        $processorName = $processor["first_name"] . " " . $processor["last_name"];
-                    }
-                }
-                
-                // Status Background
-                $statusClass = "";
-                switch ($request["status"]) 
-                {
-                    case RequestStatus::Pending->value:
-                        $statusClass = "pending-status";
-                        break;
-                    case RequestStatus::Claimed->value:
-                        $statusClass = "claimed-status";
-                        break;
-                    case RequestStatus::Ready->value:
-                        $statusClass = "ready-status";
-                        break;
-                    case RequestStatus::Released->value:
-                        $statusClass = "released-status";
-                        break;
-                    case RequestStatus::Denied->value:
-                        $statusClass = "denied-status";
-                        break;
-                }
-            ?>
+    <!-- Pagination for Ongoing Requests -->
+    <?php if ($total_pages_ongoing > 1): ?>
+    <div class="pagination-controls">
+        <?php if ($page_ongoing <= 1): ?>
+            <a class="btn disabled">&laquo; Prev</a>
+        <?php else: ?>
+            <a href="?page=my-requests&page_ongoing=<?= $page_ongoing - 1 ?>&page_finished=<?= $page_finished ?>" class="btn">&laquo; Prev</a>
+        <?php endif; ?>
+        
+        <span>Page <?= $page_ongoing ?> of <?= $total_pages_ongoing ?></span>
+        
+        <?php if ($page_ongoing >= $total_pages_ongoing): ?>
+            <a class="btn disabled">Next &raquo;</a>
+        <?php else: ?>
+            <a href="?page=my-requests&page_ongoing=<?= $page_ongoing + 1 ?>&page_finished=<?= $page_finished ?>" class="btn">Next &raquo;</a>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+
+
+    <!-- Finished Requests Table -->
+    <h2>Finished Requests</h2>
+    <table border=0>
+        <thead>
             <tr>
-                <td><?= htmlspecialchars($request["id"]) ?></td>
-                <td><?= htmlspecialchars($processorName) ?></td>
-                <td><?= htmlspecialchars($request["requested_date"]) ?></td>
-                <td><?= htmlspecialchars($request["claimed_date"] ?? "N/A") ?></td>
-                <td><?= htmlspecialchars($request["ready_date"] ?? "N/A") ?></td>
-                <td><?= htmlspecialchars($request["finished_date"] ?? "N/A") ?></td>
-                <td><?= htmlspecialchars($request["released_to"]) ?></td>
-                <td class="<?= $statusClass ?>"><?= htmlspecialchars($request["status"]) ?></td>
+                <th>Request ID</th>
+                <th>Processor Name</th>
+                <th>Date Requested</th>
+                <th>Date Finished</th>
+                <th>Released To</th>
+                <th>Status</th>
             </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            <?php if (empty($finished_requests)): ?>
+                <tr class="empty-table-message">
+                    <td colspan="6">No finished requests to display.</td>
+                </tr>
+            <?php else: ?>
+                <?php foreach ($finished_requests as $request): ?>
+                     <?php
+                        $processorName = "N/A";
+                        if (!empty($request["processors_id"])) {
+                            $processor = $usersObj->getUserById($request["processors_id"]);
+                            $processorName = $processor ? htmlspecialchars($processor["first_name"] . " " . $processor["last_name"]) : "N/A";
+                        }
+                    ?>
+                    <tr class="<?= strtolower(str_replace(' ', '-', $request["status"])) ?>-status">
+                        <td><?= htmlspecialchars($request["id"]) ?></td>
+                        <td><?= $processorName ?></td>
+                        <td><?= htmlspecialchars($request["requested_date"]) ?></td>
+                        <td><?= htmlspecialchars($request["finished_date"] ?? "N/A") ?></td>
+                        <td><?= htmlspecialchars($request["released_to"] ?? "N/A") ?></td>
+                        <td><?= htmlspecialchars($request["status"]) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </tbody>
+    </table>
+
+    <!-- Pagination for Finished Requests -->
+    <?php if ($total_pages_finished > 1): ?>
+    <div class="pagination-controls">
+        <?php if ($page_finished <= 1): ?>
+            <a class="btn disabled">&laquo; Prev</a>
+        <?php else: ?>
+            <a href="?page=my-requests&page_ongoing=<?= $page_ongoing ?>&page_finished=<?= $page_finished - 1 ?>" class="btn">&laquo; Prev</a>
+        <?php endif; ?>
+
+        <span>Page <?= $page_finished ?> of <?= $total_pages_finished ?></span>
+
+        <?php if ($page_finished >= $total_pages_finished): ?>
+            <a class="btn disabled">Next &raquo;</a>
+        <?php else: ?>
+            <a href="?page=my-requests&page_ongoing=<?= $page_ongoing ?>&page_finished=<?= $page_finished + 1 ?>" class="btn">Next &raquo;</a>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+</div>
 
 <script src="../assets/handleNewRequestForm.js"></script>
+<script src="../assets/dropdownHandler.js"></script>

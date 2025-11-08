@@ -248,6 +248,7 @@ td {
     padding: 0.7rem;
     border-top: 1px solid var(--color-border);
     color: var(--color-text-primary);
+    text-align: center;
 }
 
 .pending-status {
@@ -258,7 +259,7 @@ td {
     background-color: var(--color-inprogress-background);
 }
 
-.ready-status {
+.ready-for-pickup-status {
     background-color: var(--color-correct-background);
 }
 
@@ -361,6 +362,7 @@ hr {
 }
 
 /* Supply Search Results Dropdown */
+
 #supply-search-results {
     position: absolute;
     width: 100%;
@@ -388,72 +390,123 @@ hr {
     cursor: pointer;
 }
 
-/* Prepare Supplies */
-.supply-item {
+.page-controls {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--color-border);
-}
-
-.supply-item:last-child {
-    border-bottom: none;
-}
-
-.supply-controls {
-    display: flex;
-    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
     gap: 1rem;
-    margin-left: auto;
 }
 
-.supply-item input {
-    width: 120px;
-    text-align: left;
+.report-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
 }
 
-.supply-item.item-disabled .supply-name {
-    opacity: 0.5;
-    text-decoration: line-through;
+.report-buttons span {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
 }
 
-.supply-item.item-disabled input[type="number"] {
-    background-color: var(--color-surface);
-    opacity: 0.5;
-}
-
-.supply-item input[type="checkbox"] {
-    display: none;
-}
-
-.toggle-switch {
+.btn {
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
     cursor: pointer;
-    width: 50px;
-    height: 28px;
-    background: var(--color-border);
-    display: block;
-    border-radius: 100px;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background-color: var(--color-surface);
+    color: var(--color-text-secondary);
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.btn:hover {
+    background-color: var(--color-border);
+    color: var(--color-text-primary);
+}
+
+.btn.btn-secondary {
+    background-color: transparent;
+}
+
+.btn.btn-secondary:hover {
+    background-color: var(--color-primary-background);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+.empty-table-message td {
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+}
+
+.pagination-controls {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.pagination-controls span {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+}
+
+.pagination-controls .btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Report Dropdown */
+.report-dropdown {
     position: relative;
-    transition: background-color 0.2s;
+    display: inline-block;
 }
 
-.toggle-switch::after {
-    content: '';
+.dropdown-menu {
+    display: none;
     position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 22px;
-    height: 22px;
-    background: #FFF;
-    border-radius: 50%;
-    transition: 0.2s;
+    right: 0;
+    background-color: var(--color-surface);
+    min-width: 240px;
+    box-shadow: 0px 8px 16px 0px var(--color-shadow);
+    z-index: 100;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 0.5rem 0;
 }
 
-input:checked + .toggle-switch {
-    background: var(--color-primary);
+.dropdown-menu.show {
+    display: block;
 }
 
-input:checked + .toggle-switch::after {
-    left: calc(100% - 3px);
-    transform: translateX(-100%);
+.dropdown-menu a {
+    color: var(--color-text-secondary);
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 0.9rem;
+}
+
+.dropdown-menu a:hover {
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+}
+
+.dropdown-menu hr {
+    margin: 0.5rem 0;
+    border-color: var(--color-border);
 }
