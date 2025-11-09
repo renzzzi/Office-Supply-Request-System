@@ -110,11 +110,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <div class="modal-container" id="report-modal">
     <div class="modal">
         <span class="close-button">&times;</span>
-        <h2>Generate Report</h2>
+        <h2>Generate Request Report</h2>
 
         <form id="report-form" method="GET" target="_blank">
             <div class="form-group">
-                <label for="report-type">Report Type</label>
+                <label for="report-type">Request Type</label>
                 <select id="report-type" name="report_type">
                     <option value="all">All Requests</option>
                     <option value="in_progress">Ongoing Requests</option>
@@ -133,8 +133,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </div>
 
             <div class="report-buttons">
-                <button type="submit" id="print-report-btn" class="btn">Print Report</button>
-                <button type="submit" id="download-csv-btn" class="btn">Download CSV</button>
+                <button type="submit" id="print-report-btn" class="btn" data-action="pages/print-report.php">Print Report</button>
+                <button type="submit" id="download-csv-btn" class="btn" data-action="../api/generate-my-requests-csv.php">Download CSV</button>
             </div>
         </form>
     </div>
@@ -142,7 +142,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 <div class="page-controls">
     <button class="open-button" data-target="#add-request-modal">Add New Request</button>
-    <button class="open-button" data-target="#report-modal">Generate Report</button>
+    <button class="open-button" data-target="#report-modal">Generate Request Report</button>
 </div>
 
 <div id="requests-tables-container">

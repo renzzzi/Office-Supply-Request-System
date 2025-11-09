@@ -14,6 +14,7 @@ $usersObj = new Users($pdoConnection);
 $departmentsObj = new Departments($pdoConnection);
 $suppliesObj = new Supplies($pdoConnection);
 $errorRelease = "";
+$current_processor_id = $_SESSION['user_id'];
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"])) 
 {
@@ -22,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
 
     if ($action === "claim") 
     {
-        $requestsObj->setProcessorId($request_id, $_SESSION["user_id"]);
+        $requestsObj->setProcessorId($request_id, $current_processor_id);
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Claimed);
         header("Location: index.php?page=manage-requests");
         exit();
@@ -130,9 +131,45 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
         }
     }
 }
+
+$records_per_page = 5;
+
+// Pagination for Pending
+$page_pending = isset($_GET['page_pending']) && is_numeric($_GET['page_pending']) ? (int)$_GET['page_pending'] : 1;
+$offset_pending = ($page_pending - 1) * $records_per_page;
+$total_pending = $requestsObj->getCountByStatus(RequestStatus::Pending);
+$total_pages_pending = $total_pending > 0 ? ceil($total_pending / $records_per_page) : 1;
+$pending_requests = $requestsObj->getPaginatedRequestsByStatus(RequestStatus::Pending, $records_per_page, $offset_pending);
+
+// Pagination for Claimed
+$page_claimed = isset($_GET['page_claimed']) && is_numeric($_GET['page_claimed']) ? (int)$_GET['page_claimed'] : 1;
+$offset_claimed = ($page_claimed - 1) * $records_per_page;
+$total_claimed = $requestsObj->getCountByProcessorIdAndStatus($current_processor_id, RequestStatus::Claimed);
+$total_pages_claimed = $total_claimed > 0 ? ceil($total_claimed / $records_per_page) : 1;
+$claimed_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatus($current_processor_id, RequestStatus::Claimed, $records_per_page, $offset_claimed);
+
+// Pagination for Ready
+$page_ready = isset($_GET['page_ready']) && is_numeric($_GET['page_ready']) ? (int)$_GET['page_ready'] : 1;
+$offset_ready = ($page_ready - 1) * $records_per_page;
+$total_ready = $requestsObj->getCountByProcessorIdAndStatus($current_processor_id, RequestStatus::Ready);
+$total_pages_ready = $total_ready > 0 ? ceil($total_ready / $records_per_page) : 1;
+$ready_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatus($current_processor_id, RequestStatus::Ready, $records_per_page, $offset_ready);
+
+// Pagination for Released
+$page_released = isset($_GET['page_released']) && is_numeric($_GET['page_released']) ? (int)$_GET['page_released'] : 1;
+$offset_released = ($page_released - 1) * $records_per_page;
+$total_released = $requestsObj->getCountByProcessorIdAndStatus($current_processor_id, RequestStatus::Released);
+$total_pages_released = $total_released > 0 ? ceil($total_released / $records_per_page) : 1;
+$released_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatus($current_processor_id, RequestStatus::Released, $records_per_page, $offset_released);
+
+// Pagination for Denied
+$page_denied = isset($_GET['page_denied']) && is_numeric($_GET['page_denied']) ? (int)$_GET['page_denied'] : 1;
+$offset_denied = ($page_denied - 1) * $records_per_page;
+$total_denied = $requestsObj->getCountByProcessorIdAndStatus($current_processor_id, RequestStatus::Denied);
+$total_pages_denied = $total_denied > 0 ? ceil($total_denied / $records_per_page) : 1;
+$denied_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatus($current_processor_id, RequestStatus::Denied, $records_per_page, $offset_denied);
 ?>
 
-<!-- Supply Details Modal -->
 <div class="modal-container" id="supply-details-modal">
     <div class="modal">
         <span class="close-button">&times;</span>
@@ -144,143 +181,130 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                     <th>Quantity</th>
                 </tr>
             </thead>
-            <tbody id="supply-details-tbody">
-                <!-- Supply details will appear here -->
-            </tbody>
+            <tbody id="supply-details-tbody"></tbody>
         </table>
     </div>
 </div>
 
-<!-- Prepare Supplies Modal -->
 <div class="modal-container" id="prepare-supplies-modal">
     <div class="modal">
         <span class="close-button">&times;</span>
         <h2>Prepare Supplies for Request</h2>
         <p>Uncheck items that are unavailable or adjust quantities as needed.</p>
-
         <form action="index.php?page=manage-requests" method="POST" id="prepare-supplies-form">
-            <div id="prepare-supplies-list">
-                <!-- Supplies will appear here -->
-            </div>
-
+            <div id="prepare-supplies-list"></div>
             <p id="prepare-form-error" class="error-message error prepare-supplies-error" style="display: none;"></p>
-
             <input type="hidden" name="request_id" id="prepare-request-id">
             <input type="hidden" name="action" value="ready">
-
             <button type="submit" class="submit-button">Mark as Ready for Pickup</button>
         </form>
     </div>
 </div>
 
-<!-- Release Modal -->
 <div class="modal-container" id="release-modal">
     <div class="modal">
         <span class="close-button">&times;</span>
         <h2>Who are you releasing this to?</h2>
-
         <form action="index.php?page=manage-requests" method="POST" id="release-form">
             <div class="form-group">
                 <label for="receiver-input">Name of the receiver</label>
                 <input type="text" id="receiver-input" name="released_to" placeholder="Name">
             </div>
-
             <p class="error-message error" id="release-error-message" style="display: none;"></p>
-
             <input type="hidden" name="request_id" id="release-request-id">
             <input type="hidden" name="action" value="release">
-
             <button type="submit" class="submit-button">Release</button>
         </form>
     </div>
 </div>
 
-<!-- Pending Requests Table -->
+<div class="modal-container" id="report-modal">
+    <div class="modal">
+        <span class="close-button">&times;</span>
+        <h2>Generate Processor Request Report</h2>
+        <form id="report-form" method="GET" target="_blank">
+            <div class="form-group">
+                <label for="report-type">Request Status</label>
+                <select id="report-type" name="report_type">
+                    <option value="all">Pending & Processed (Claimed, Ready For Pickup, Finished)</option>
+                    <option value="pending">Pending</option>
+                    <option value="processed">Processed (Claimed, Ready For Pickup, Finished)</option>
+                    <option value="claimed">Claimed</option>
+                    <option value="ready">Ready For Pickup</option>
+                    <option value="finished">Finished</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="start-date">Start Date (Optional)</label>
+                <input type="date" id="start-date" name="start_date">
+            </div>
+            <div class="form-group">
+                <label for="end-date">End Date (Optional)</label>
+                <input type="date" id="end-date" name="end_date">
+            </div>
+            <div class="report-buttons">
+                <button type="submit" id="print-report-btn" class="btn" data-action="pages/print-processor-report.php">Print Report</button>
+                <button type="submit" id="download-csv-btn" class="btn" data-action="../api/generate-processor-requests-csv.php">Download CSV</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="page-controls">
+    <button class="open-button" data-target="#report-modal">Generate Request Report</button>
+</div>
+
 <h2>Pending Requests</h2>
-<table border=1>
+<table>
     <thead>
         <tr>
-            <th>Request ID</th>
+            <th>ID</th>
             <th>Requested At</th>
-            <th>Requester Name</th>
+            <th>Requester</th>
             <th>Department</th>
-            <th>Supply Requested (Summary)</th>
-            <th>Status</th>
+            <th>Supplies (Summary)</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        <?php foreach ($requestsObj->getAllRequestsByStatus(RequestStatus::Pending) as $request): ?>
+        <?php if (empty($pending_requests)): ?>
+            <tr class="empty-table-message"><td colspan="6">No pending requests.</td></tr>
+        <?php else: ?>
+        <?php foreach ($pending_requests as $request): ?>
             <?php
                 $requester = $usersObj->getUserById($request["requesters_id"]);
                 $departmentName = "N/A";
-                if ($requester) 
-                {
+                if ($requester) {
                     $department = $departmentsObj->getDepartmentById($requester["departments_id"]);
-                    if ($department) 
-                    {
-                        $departmentName = $department["name"];
-                    }
+                    if ($department) $departmentName = $department["name"];
                 }
-
-                $statusClass = "";
-                switch ($request["status"]) 
-                {
-                    case RequestStatus::Pending->value:
-                        $statusClass = "pending-status";
-                        break;
-                    case RequestStatus::Claimed->value:
-                        $statusClass = "claimed-status";
-                        break;
-                    case RequestStatus::Ready->value:
-                        $statusClass = "ready-status";
-                        break;
-                    case RequestStatus::Released->value:
-                        $statusClass = "released-status";
-                        break;
-                    case RequestStatus::Denied->value:
-                        $statusClass = "denied-status";
-                        break;
-                }
-
                 $supplySummary = $requestSuppliesObj->getSupplySummaryByRequestId($request["id"]);
                 $totalCount = $requestSuppliesObj->getSupplyCountByRequestId($request["id"]);
                 $finalSummary = ""; 
-
-                if ($totalCount === 0) 
-                {
+                if ($totalCount === 0) {
                     $finalSummary = "No supplies";
-                } 
-                else 
-                {
+                } else {
                     $summaryParts = [];
                     foreach ($supplySummary as $supply):
                         $summaryParts[] = htmlspecialchars($supply['name']) . ' (x' . htmlspecialchars($supply['supply_quantity']) . ')';
                     endforeach;
                     $finalSummary = implode("<br>", $summaryParts);
-                
-                    if ($totalCount > count($supplySummary)) 
-                    {
+                    if ($totalCount > count($supplySummary)) {
                         $remainingCount = $totalCount - count($supplySummary);
                         $finalSummary .= "<br>" . "&nbsp;...and&nbsp;" . $remainingCount . "&nbsp;more";
                     }
                 }
             ?>
-            <tr>
+            <tr class="pending-status">
                 <td><?= htmlspecialchars($request["id"]) ?></td>
                 <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
                 <td><?= htmlspecialchars($departmentName) ?></td>
                 <?php if ($totalCount > 2): ?>
-                    <td class="view-supplies-trigger" 
-                    data-request-id="<?= htmlspecialchars($request['id']) ?>"
-                    title="Click to view all supplies">
-                        <?= $finalSummary ?>
-                    </td>
+                    <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view all supplies"><?= $finalSummary ?></td>
                 <?php else: ?>
                     <td><?= $finalSummary ?></td>
                 <?php endif; ?>
-                <td class="<?= $statusClass ?>"><?= htmlspecialchars($request["status"]) ?></td>
                 <td>
                     <form action="index.php?page=manage-requests" method="POST">
                         <input type="hidden" name="request_id" value="<?= htmlspecialchars($request["id"]) ?>">
@@ -289,404 +313,204 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
                 </td>
             </tr>
         <?php endforeach; ?>
+        <?php endif; ?>
     </tbody>
 </table>
+<?php if ($total_pages_pending > 1): ?>
+<div class="pagination-controls">
+    <a href="?page=manage-requests&page_pending=<?= $page_pending - 1 ?>" class="btn <?= $page_pending <= 1 ? 'disabled' : '' ?>">&laquo; Prev</a>
+    <span>Page <?= $page_pending ?> of <?= $total_pages_pending ?></span>
+    <a href="?page=manage-requests&page_pending=<?= $page_pending + 1 ?>" class="btn <?= $page_pending >= $total_pages_pending ? 'disabled' : '' ?>">Next &raquo;</a>
+</div>
+<?php endif; ?>
 
 
-<!-- Claimed Requests Table -->
 <h2>My Claimed Requests</h2>
-<table border=1>
+<table>
     <thead>
         <tr>
-            <th>Request ID</th>
+            <th>ID</th>
             <th>Requested At</th>
-            <th>Requester Name</th>
-            <th>Department</th>
-            <th>Supply Requested (Summary)</th>
+            <th>Requester</th>
+            <th>Supplies (Summary)</th>
             <th>Claimed At</th>
-            <th>Status</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        <?php foreach ($requestsObj->getAllRequestsByProcessorIdAndStatus($_SESSION["user_id"], RequestStatus::Claimed) as $request): ?>
-            <?php
+        <?php if (empty($claimed_requests)): ?>
+            <tr class="empty-table-message"><td colspan="6">You have no claimed requests.</td></tr>
+        <?php else: ?>
+        <?php foreach ($claimed_requests as $request): ?>
+             <?php
                 $requester = $usersObj->getUserById($request["requesters_id"]);
-                $departmentName = "N/A";
-                if ($requester) 
-                {
-                    $department = $departmentsObj->getDepartmentById($requester["departments_id"]);
-                    if ($department) 
-                    {
-                        $departmentName = $department["name"];
-                    }
-                }
-
-                $statusClass = "";
-                switch ($request["status"]) 
-                {
-                    case RequestStatus::Pending->value:
-                        $statusClass = "pending-status";
-                        break;
-                    case RequestStatus::Claimed->value:
-                        $statusClass = "claimed-status";
-                        break;
-                    case RequestStatus::Ready->value:
-                        $statusClass = "ready-status";
-                        break;
-                    case RequestStatus::Released->value:
-                        $statusClass = "released-status";
-                        break;
-                    case RequestStatus::Denied->value:
-                        $statusClass = "denied-status";
-                        break;
-                }
-
                 $supplySummary = $requestSuppliesObj->getSupplySummaryByRequestId($request["id"]);
                 $totalCount = $requestSuppliesObj->getSupplyCountByRequestId($request["id"]);
                 $finalSummary = ""; 
-
-                if ($totalCount === 0) 
-                {
+                if ($totalCount === 0) {
                     $finalSummary = "No supplies";
-                } 
-                else 
-                {
+                } else {
                     $summaryParts = [];
                     foreach ($supplySummary as $supply):
                         $summaryParts[] = htmlspecialchars($supply['name']) . ' (x' . htmlspecialchars($supply['supply_quantity']) . ')';
                     endforeach;
                     $finalSummary = implode("<br>", $summaryParts);
-                
-                    if ($totalCount > count($supplySummary)) 
-                    {
+                    if ($totalCount > count($supplySummary)) {
                         $remainingCount = $totalCount - count($supplySummary);
                         $finalSummary .= "<br>" . "&nbsp;...and&nbsp;" . $remainingCount . "&nbsp;more";
                     }
                 }
             ?>
-            <tr>
+            <tr class="claimed-status">
                 <td><?= htmlspecialchars($request["id"]) ?></td>
                 <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
-                <td><?= htmlspecialchars($departmentName) ?></td>
                 <?php if ($totalCount > 2): ?>
-                    <td class="view-supplies-trigger" 
-                    data-request-id="<?= htmlspecialchars($request['id']) ?>"
-                    title="Click to view all supplies">
-                        <?= $finalSummary ?>
-                    </td>
+                    <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view all supplies"><?= $finalSummary ?></td>
                 <?php else: ?>
                     <td><?= $finalSummary ?></td>
                 <?php endif; ?>
                 <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
-                <td class="<?= $statusClass ?>"><?= htmlspecialchars($request["status"]) ?></td>
                 <td>
-                    <button type="button" class="open-button" 
-                    data-target="#prepare-supplies-modal" 
-                    data-request-id="<?= htmlspecialchars($request['id']) ?>">
-                        Finalize Supply List
-                    </button>
-                    <form action="index.php?page=manage-requests" method="POST">
+                    <button type="button" class="open-button" data-target="#prepare-supplies-modal" data-request-id="<?= htmlspecialchars($request['id']) ?>">Finalize</button>
+                    <form action="index.php?page=manage-requests" method="POST" style="display:inline;">
                         <input type="hidden" name="request_id" value="<?= htmlspecialchars($request["id"]) ?>">
                         <button type="submit" name="action" value="deny" class="deny-button">Deny</button>
                     </form>
                 </td>
             </tr>
         <?php endforeach; ?>
+        <?php endif; ?>
     </tbody>
 </table>
+<?php if ($total_pages_claimed > 1): ?>
+<div class="pagination-controls">
+    <a href="?page=manage-requests&page_claimed=<?= $page_claimed - 1 ?>" class="btn <?= $page_claimed <= 1 ? 'disabled' : '' ?>">&laquo; Prev</a>
+    <span>Page <?= $page_claimed ?> of <?= $total_pages_claimed ?></span>
+    <a href="?page=manage-requests&page_claimed=<?= $page_claimed + 1 ?>" class="btn <?= $page_claimed >= $total_pages_claimed ? 'disabled' : '' ?>">Next &raquo;</a>
+</div>
+<?php endif; ?>
 
 
-<!-- Ready For Pickup Requests Table -->
-<h2>Ready For Pickup Requests</h2>
-<table border=1>
+<h2>My Ready For Pickup Requests</h2>
+<table>
     <thead>
         <tr>
-            <th>Request ID</th>
-            <th>Requested At</th>
-            <th>Requester Name</th>
-            <th>Department</th>
-            <th>Supply Requested (Summary)</th>
-            <th>Claimed At</th>
-            <th>Ready To Pickup At</th>
-            <th>Status</th>
+            <th>ID</th>
+            <th>Requester</th>
+            <th>Supplies (Summary)</th>
+            <th>Ready At</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
-        <?php foreach ($requestsObj->getAllRequestsByProcessorIdAndStatus($_SESSION["user_id"], RequestStatus::Ready) as $request): ?>
+        <?php if (empty($ready_requests)): ?>
+            <tr class="empty-table-message"><td colspan="5">You have no ready for pickup requests.</td></tr>
+        <?php else: ?>
+        <?php foreach ($ready_requests as $request): ?>
             <?php
                 $requester = $usersObj->getUserById($request["requesters_id"]);
-                $departmentName = "N/A";
-                if ($requester) 
-                {
-                    $department = $departmentsObj->getDepartmentById($requester["departments_id"]);
-                    if ($department) 
-                    {
-                        $departmentName = $department["name"];
-                    }
-                }
-
-                $statusClass = "";
-                switch ($request["status"]) 
-                {
-                    case RequestStatus::Pending->value:
-                        $statusClass = "pending-status";
-                        break;
-                    case RequestStatus::Claimed->value:
-                        $statusClass = "claimed-status";
-                        break;
-                    case RequestStatus::Ready->value:
-                        $statusClass = "ready-status";
-                        break;
-                    case RequestStatus::Released->value:
-                        $statusClass = "released-status";
-                        break;
-                    case RequestStatus::Denied->value:
-                        $statusClass = "denied-status";
-                        break;
-                }
-
                 $supplySummary = $requestSuppliesObj->getSupplySummaryByRequestId($request["id"]);
                 $totalCount = $requestSuppliesObj->getSupplyCountByRequestId($request["id"]);
                 $finalSummary = ""; 
-
-                if ($totalCount === 0) 
-                {
+                if ($totalCount === 0) {
                     $finalSummary = "No supplies";
-                } 
-                else 
-                {
+                } else {
                     $summaryParts = [];
                     foreach ($supplySummary as $supply):
                         $summaryParts[] = htmlspecialchars($supply['name']) . ' (x' . htmlspecialchars($supply['supply_quantity']) . ')';
                     endforeach;
                     $finalSummary = implode("<br>", $summaryParts);
-                
-                    if ($totalCount > count($supplySummary)) 
-                    {
+                    if ($totalCount > count($supplySummary)) {
                         $remainingCount = $totalCount - count($supplySummary);
                         $finalSummary .= "<br>" . "&nbsp;...and&nbsp;" . $remainingCount . "&nbsp;more";
                     }
                 }
             ?>
-            <tr>
+            <tr class="ready-for-pickup-status">
                 <td><?= htmlspecialchars($request["id"]) ?></td>
-                <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
-                <td><?= htmlspecialchars($departmentName) ?></td>
                 <?php if ($totalCount > 2): ?>
-                    <td class="view-supplies-trigger" 
-                    data-request-id="<?= htmlspecialchars($request['id']) ?>"
-                    title="Click to view all supplies">
-                        <?= $finalSummary ?>
-                    </td>
+                    <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view all supplies"><?= $finalSummary ?></td>
                 <?php else: ?>
                     <td><?= $finalSummary ?></td>
                 <?php endif; ?>
-                <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
                 <td><?= htmlspecialchars($request["ready_date"]) ?></td>
-                <td class="<?= $statusClass ?>"><?= htmlspecialchars($request["status"]) ?></td>
-                <td><button class="open-button" data-target="#release-modal" 
-                data-request-id="<?= htmlspecialchars($request["id"]) ?>">Release To</button></td>
+                <td><button class="open-button" data-target="#release-modal" data-request-id="<?= htmlspecialchars($request["id"]) ?>">Release</button></td>
             </tr>
         <?php endforeach; ?>
+        <?php endif; ?>
     </tbody>
 </table>
+<?php if ($total_pages_ready > 1): ?>
+<div class="pagination-controls">
+    <a href="?page=manage-requests&page_ready=<?= $page_ready - 1 ?>" class="btn <?= $page_ready <= 1 ? 'disabled' : '' ?>">&laquo; Prev</a>
+    <span>Page <?= $page_ready ?> of <?= $total_pages_ready ?></span>
+    <a href="?page=manage-requests&page_ready=<?= $page_ready + 1 ?>" class="btn <?= $page_ready >= $total_pages_ready ? 'disabled' : '' ?>">Next &raquo;</a>
+</div>
+<?php endif; ?>
 
-<!-- Released Requests Table -->
-<h2>Released Requests</h2>
-<table border=1>
+
+<h2>My Finished Requests</h2>
+<table>
     <thead>
         <tr>
-            <th>Request ID</th>
-            <th>Requested At</th>
-            <th>Requester Name</th>
-            <th>Department</th>
-            <th>Supply Requested (Summary)</th>
-            <th>Claimed At</th>
-            <th>Ready To Pickup At</th>
+            <th>ID</th>
+            <th>Requester</th>
+            <th>Supplies (Summary)</th>
             <th>Finished At</th>
             <th>Released To</th>
             <th>Status</th>
         </tr>
     </thead>
     <tbody>
-        <?php foreach ($requestsObj->getAllRequestsByProcessorIdAndStatus($_SESSION["user_id"], RequestStatus::Released) as $request): ?>
+        <?php
+            $finished_requests = array_merge($released_requests, $denied_requests);
+            usort($finished_requests, function($a, $b) {
+                return strtotime($b['finished_date']) - strtotime($a['finished_date']);
+            });
+        ?>
+        <?php if (empty($finished_requests)): ?>
+            <tr class="empty-table-message"><td colspan="6">You have no finished requests.</td></tr>
+        <?php else: ?>
+        <?php foreach ($finished_requests as $request): ?>
             <?php
                 $requester = $usersObj->getUserById($request["requesters_id"]);
-                $departmentName = "N/A";
-                if ($requester) 
-                {
-                    $department = $departmentsObj->getDepartmentById($requester["departments_id"]);
-                    if ($department) 
-                    {
-                        $departmentName = $department["name"];
-                    }
-                }
-
-                $statusClass = "";
-                switch ($request["status"]) 
-                {
-                    case RequestStatus::Pending->value:
-                        $statusClass = "pending-status";
-                        break;
-                    case RequestStatus::Claimed->value:
-                        $statusClass = "claimed-status";
-                        break;
-                    case RequestStatus::Ready->value:
-                        $statusClass = "ready-status";
-                        break;
-                    case RequestStatus::Released->value:
-                        $statusClass = "released-status";
-                        break;
-                    case RequestStatus::Denied->value:
-                        $statusClass = "denied-status";
-                        break;
-                }
-
                 $supplySummary = $requestSuppliesObj->getSupplySummaryByRequestId($request["id"]);
                 $totalCount = $requestSuppliesObj->getSupplyCountByRequestId($request["id"]);
                 $finalSummary = ""; 
-
-                if ($totalCount === 0) 
-                {
+                if ($totalCount === 0) {
                     $finalSummary = "No supplies";
-                } 
-                else 
-                {
+                } else {
                     $summaryParts = [];
                     foreach ($supplySummary as $supply):
                         $summaryParts[] = htmlspecialchars($supply['name']) . ' (x' . htmlspecialchars($supply['supply_quantity']) . ')';
                     endforeach;
                     $finalSummary = implode("<br>", $summaryParts);
-                
-                    if ($totalCount > count($supplySummary)) 
-                    {
+                    if ($totalCount > count($supplySummary)) {
                         $remainingCount = $totalCount - count($supplySummary);
                         $finalSummary .= "<br>" . "&nbsp;...and&nbsp;" . $remainingCount . "&nbsp;more";
                     }
                 }
             ?>
-            <tr>
+            <tr class="<?= $request['status'] === 'Released' ? 'released-status' : 'denied-status' ?>">
                 <td><?= htmlspecialchars($request["id"]) ?></td>
-                <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
-                <td><?= htmlspecialchars($departmentName) ?></td>
                 <?php if ($totalCount > 2): ?>
-                    <td class="view-supplies-trigger" 
-                    data-request-id="<?= htmlspecialchars($request['id']) ?>"
-                    title="Click to view all supplies">
-                        <?= $finalSummary ?>
-                    </td>
+                    <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view all supplies"><?= $finalSummary ?></td>
                 <?php else: ?>
                     <td><?= $finalSummary ?></td>
                 <?php endif; ?>
-                <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
-                <td><?= htmlspecialchars($request["ready_date"]) ?></td>
                 <td><?= htmlspecialchars($request["finished_date"]) ?></td>
-                <td><?= htmlspecialchars($request["released_to"]) ?></td>
-                <td class="<?= $statusClass ?>"><?= htmlspecialchars($request["status"]) ?></td>
+                <td><?= htmlspecialchars($request["released_to"] ?? 'N/A') ?></td>
+                <td><?= htmlspecialchars($request["status"]) ?></td>
             </tr>
         <?php endforeach; ?>
-    </tbody>
-</table>
-
-<!-- Denied Requests Table -->
-<h2>Denied Requests</h2>
-<table border=1>
-    <thead>
-        <tr>
-            <th>Request ID</th>
-            <th>Requested At</th>
-            <th>Requester Name</th>
-            <th>Department</th>
-            <th>Supply Requested (Summary)</th>
-            <th>Claimed At</th>
-            <th>Finished At</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php foreach ($requestsObj->getAllRequestsByProcessorIdAndStatus($_SESSION["user_id"], RequestStatus::Denied) as $request): ?>
-            <?php
-                $requester = $usersObj->getUserById($request["requesters_id"]);
-                $departmentName = "N/A";
-                if ($requester) 
-                {
-                    $department = $departmentsObj->getDepartmentById($requester["departments_id"]);
-                    if ($department) 
-                    {
-                        $departmentName = $department["name"];
-                    }
-                }
-
-                $statusClass = "";
-                switch ($request["status"]) 
-                {
-                    case RequestStatus::Pending->value:
-                        $statusClass = "pending-status";
-                        break;
-                    case RequestStatus::Claimed->value:
-                        $statusClass = "claimed-status";
-                        break;
-                    case RequestStatus::Ready->value:
-                        $statusClass = "ready-status";
-                        break;
-                    case RequestStatus::Released->value:
-                        $statusClass = "released-status";
-                        break;
-                    case RequestStatus::Denied->value:
-                        $statusClass = "denied-status";
-                        break;
-                }
-
-                $supplySummary = $requestSuppliesObj->getSupplySummaryByRequestId($request["id"]);
-                $totalCount = $requestSuppliesObj->getSupplyCountByRequestId($request["id"]);
-                $finalSummary = ""; 
-
-                if ($totalCount === 0) 
-                {
-                    $finalSummary = "No supplies";
-                } 
-                else 
-                {
-                    $summaryParts = [];
-                    foreach ($supplySummary as $supply):
-                        $summaryParts[] = htmlspecialchars($supply['name']) . ' (x' . htmlspecialchars($supply['supply_quantity']) . ')';
-                    endforeach;
-                    $finalSummary = implode("<br>", $summaryParts);
-                
-                    if ($totalCount > count($supplySummary)) 
-                    {
-                        $remainingCount = $totalCount - count($supplySummary);
-                        $finalSummary .= "<br>" . "&nbsp;...and&nbsp;" . $remainingCount . "&nbsp;more";
-                    }
-                }
-            ?>
-            <tr>
-                <td><?= htmlspecialchars($request["id"]) ?></td>
-                <td><?= htmlspecialchars($request["requested_date"]) ?></td>
-                <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
-                <td><?= htmlspecialchars($departmentName) ?></td>
-                <?php if ($totalCount > 2): ?>
-                    <td class="view-supplies-trigger" 
-                    data-request-id="<?= htmlspecialchars($request['id']) ?>"
-                    title="Click to view all supplies">
-                        <?= $finalSummary ?>
-                    </td>
-                <?php else: ?>
-                    <td><?= $finalSummary ?></td>
-                <?php endif; ?>
-                <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
-                <td><?= htmlspecialchars($request["finished_date"]) ?></td>
-                <td class="<?= $statusClass ?>"><?= htmlspecialchars($request["status"]) ?></td>
-            </tr>
-        <?php endforeach; ?>
+        <?php endif; ?>
     </tbody>
 </table>
 
 <script src="../assets/prepareSupplyListRequest.js"></script>
 <script src="../assets/viewRequestSuppliesDetails.js"></script>
 <script src="../assets/releaseModalValidation.js"></script>
+<script src="../assets/handleReportModal.js"></script>

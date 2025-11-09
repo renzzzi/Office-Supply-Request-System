@@ -2,16 +2,16 @@ const reportForm = document.getElementById('report-form');
 const printBtn = document.getElementById('print-report-btn');
 const csvBtn = document.getElementById('download-csv-btn');
 
-if (printBtn) {
+if (reportForm && printBtn) {
     printBtn.addEventListener('click', function() {
-        reportForm.action = 'pages/print-report.php';
+        reportForm.action = this.dataset.action;
         reportForm.target = '_blank';
     });
 }
 
-if (csvBtn) {
+if (reportForm && csvBtn) {
     csvBtn.addEventListener('click', function() {
-        reportForm.action = '../api/generate-my-requests-csv.php';
+        reportForm.action = this.dataset.action;
         reportForm.target = '_self';
     });
 }

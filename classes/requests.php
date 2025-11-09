@@ -174,4 +174,100 @@ class Requests
         $query->execute($params);
         return $query->fetchAll();
     }
+
+    public function getPaginatedRequestsByStatus(RequestStatus $status, int $limit, int $offset)
+    {
+        $sql = "SELECT * FROM requests WHERE status = ? ORDER BY requested_date DESC LIMIT ? OFFSET ?";
+        $query = $this->pdo->prepare($sql);
+        $query->bindValue(1, $status->value);
+        $query->bindValue(2, $limit, PDO::PARAM_INT);
+        $query->bindValue(3, $offset, PDO::PARAM_INT);
+        $query->execute();
+        return $query->fetchAll();
+    }
+
+    public function getCountByStatus(RequestStatus $status): int
+    {
+        $sql = "SELECT COUNT(id) FROM requests WHERE status = ?";
+        $query = $this->pdo->prepare($sql);
+        $query->execute([$status->value]);
+        return (int)$query->fetchColumn();
+    }
+
+    public function getPaginatedRequestsByProcessorIdAndStatus(int $processorId, RequestStatus $status, int $limit, int $offset)
+    {
+        $sql = "SELECT * FROM requests WHERE processors_id = ? AND status = ? ORDER BY requested_date DESC LIMIT ? OFFSET ?";
+        $query = $this->pdo->prepare($sql);
+        $query->bindValue(1, $processorId, PDO::PARAM_INT);
+        $query->bindValue(2, $status->value);
+        $query->bindValue(3, $limit, PDO::PARAM_INT);
+        $query->bindValue(4, $offset, PDO::PARAM_INT);
+        $query->execute();
+        return $query->fetchAll();
+    }
+
+    public function getCountByProcessorIdAndStatus(int $processorId, RequestStatus $status): int
+    {
+        $sql = "SELECT COUNT(id) FROM requests WHERE processors_id = ? AND status = ?";
+        $query = $this->pdo->prepare($sql);
+        $query->execute([$processorId, $status->value]);
+        return (int)$query->fetchColumn();
+    }
+
+    public function getFilteredRequestsForProcessor(?int $processorId, string $reportType, ?string $startDate = null, ?string $endDate = null)
+    {
+        $sql = "SELECT r.*, 
+                       u_req.first_name as req_first_name, 
+                       u_req.last_name as req_last_name,
+                       d.name as department_name,
+                       u_proc.first_name as proc_first_name,
+                       u_proc.last_name as proc_last_name
+                FROM requests r
+                LEFT JOIN users u_req ON r.requesters_id = u_req.id
+                LEFT JOIN departments d ON u_req.departments_id = d.id
+                LEFT JOIN users u_proc ON r.processors_id = u_proc.id
+                WHERE 1=1 ";
+
+        $params = [];
+
+        $status_map = [
+            'pending' => [RequestStatus::Pending->value],
+            'claimed' => [RequestStatus::Claimed->value],
+            'ready' => [RequestStatus::Ready->value],
+            'finished' => [RequestStatus::Released->value, RequestStatus::Denied->value],
+            'processed' => [RequestStatus::Claimed->value, RequestStatus::Ready->value, RequestStatus::Released->value, RequestStatus::Denied->value]
+        ];
+        
+        if (array_key_exists($reportType, $status_map)) {
+            $statuses = $status_map[$reportType];
+            $placeholders = implode(',', array_fill(0, count($statuses), '?'));
+            $sql .= " AND r.status IN ($placeholders)";
+            $params = array_merge($params, $statuses);
+
+            if ($reportType !== 'pending') {
+                 $sql .= " AND r.processors_id = ? ";
+                 $params[] = $processorId;
+            }
+
+        } elseif ($reportType === 'all') {
+            $sql .= " AND (r.status = ? OR r.processors_id = ?) ";
+            $params[] = RequestStatus::Pending->value;
+            $params[] = $processorId;
+        }
+
+        if (!empty($startDate)) {
+            $sql .= " AND DATE(r.requested_date) >= ? ";
+            $params[] = $startDate;
+        }
+        if (!empty($endDate)) {
+            $sql .= " AND DATE(r.requested_date) <= ? ";
+            $params[] = $endDate;
+        }
+
+        $sql .= "ORDER BY r.requested_date DESC";
+        
+        $query = $this->pdo->prepare($sql);
+        $query->execute($params);
+        return $query->fetchAll();
+    }
 }
