@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-// Security check: ensure user is logged in
 if (!isset($_SESSION["user_id"])) {
     die("Access Denied. You must be logged in to view this page.");
 }
@@ -12,19 +11,26 @@ require_once __DIR__ . "/../../classes/requests.php";
 $pdoConnection = (new Database())->connect();
 $requestsObj = new Requests($pdoConnection);
 
-// Determine the report type from the URL
 $report_type = $_GET['report_type'] ?? 'all';
-$requests = $requestsObj->getFilteredRequestsForRequester($_SESSION["user_id"], $report_type);
+$start_date = !empty($_GET['start_date']) ? $_GET['start_date'] : null;
+$end_date = !empty($_GET['end_date']) ? $_GET['end_date'] : null;
 
-// Set a dynamic title for the report
+$requests = $requestsObj->getFilteredRequestsForRequester($_SESSION["user_id"], $report_type, $start_date, $end_date);
+
 $reportTitle = "All My Requests";
-switch ($report_type) {
-    case 'completed_90_days':
-        $reportTitle = "My Finished Requests (Last 90 Days)";
-        break;
-    case 'in_progress':
-        $reportTitle = "My Ongoing Requests";
-        break;
+if ($report_type === 'in_progress') {
+    $reportTitle = "My Ongoing Requests";
+} elseif ($report_type === 'finished') {
+    $reportTitle = "My Finished Requests";
+}
+
+$dateRangeStr = "All Time";
+if ($start_date && $end_date) {
+    $dateRangeStr = htmlspecialchars($start_date) . " to " . htmlspecialchars($end_date);
+} elseif ($start_date) {
+    $dateRangeStr = "From " . htmlspecialchars($start_date);
+} elseif ($end_date) {
+    $dateRangeStr = "Until " . htmlspecialchars($end_date);
 }
 ?>
 <!DOCTYPE html>
@@ -33,21 +39,16 @@ switch ($report_type) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Print Report: <?= htmlspecialchars($reportTitle) ?></title>
-    <link rel="stylesheet" href="../../assets/print-style.css" media="print">
-    <style>
-        body { font-family: sans-serif; margin: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        h1 { text-align: center; }
-        .no-print { text-align: center; margin-top: 20px; }
-        button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
-    </style>
+    <link rel="stylesheet" href="../../assets/print-style.css">
 </head>
 <body>
-
     <div id="requests-report-container">
-        <h1><?= htmlspecialchars($reportTitle) ?></h1>
+        <header id="report-header">
+            <h1><?= htmlspecialchars($reportTitle) ?></h1>
+            <p><strong>Date Range:</strong> <?= $dateRangeStr ?></p>
+            <p><strong>Report Generated On:</strong> <?= date("Y-m-d H:i:s") ?></p>
+        </header>
+
         <table>
             <thead>
                 <tr>
@@ -62,15 +63,15 @@ switch ($report_type) {
             <tbody>
                 <?php if (empty($requests)): ?>
                     <tr>
-                        <td colspan="6" style="text-align:center;">No records found for this report.</td>
+                        <td colspan="6" style="text-align:center; padding: 20px;">No records found for the selected criteria.</td>
                     </tr>
                 <?php else: ?>
                     <?php foreach ($requests as $request): ?>
                         <tr>
                             <td><?= htmlspecialchars($request['id']) ?></td>
                             <td><?= (!empty($request["proc_first_name"])) ? htmlspecialchars($request["proc_first_name"] . " " . $request["proc_last_name"]) : "N/A" ?></td>
-                            <td><?= htmlspecialchars($request['requested_date']) ?></td>
-                            <td><?= htmlspecialchars($request['finished_date'] ?? 'N/A') ?></td>
+                            <td><?= htmlspecialchars(date("Y-m-d", strtotime($request['requested_date']))) ?></td>
+                            <td><?= $request['finished_date'] ? htmlspecialchars(date("Y-m-d", strtotime($request['finished_date']))) : 'N/A' ?></td>
                             <td><?= htmlspecialchars($request['released_to'] ?? 'N/A') ?></td>
                             <td><?= htmlspecialchars($request['status']) ?></td>
                         </tr>

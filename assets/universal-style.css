@@ -198,6 +198,7 @@ button:hover, .open-button:hover {
     margin-bottom: 1.5rem;
 }
 
+ 
 .claim-button {
     background-color: var(--color-inprogress);
 }
@@ -392,7 +393,6 @@ hr {
 
 .page-controls {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
     flex-wrap: wrap;
@@ -471,6 +471,7 @@ hr {
 }
 
 /* Report Dropdown */
+
 .report-dropdown {
     position: relative;
     display: inline-block;

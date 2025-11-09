@@ -19,26 +19,25 @@ class Requests
 
     public $id = "";
     public $requesters_id = "";
-    public $processors_id = ""; // nullable
-    public $released_to = ""; // nullable
+    public $processors_id = ""; 
+    public $released_to = ""; 
 
     public $requested_date = "";
-    public $claimed_date = ""; //nullable
-    public $ready_date = ""; // nullable
-    public $finished_date = ""; // nullable
+    public $claimed_date = "";
+    public $ready_date = "";
+    public $finished_date = "";
     
-    public $status = ""; // default 'Pending'
-    public $updated_at = ""; // auto-updated
+    public $status = "";
+    public $updated_at = "";
 
-    public $requesters_message = ""; // nullable
-    public $processors_remarks = ""; // nullable
+    public $requesters_message = "";
+    public $processors_remarks = "";
 
     public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
     }
 
-    // Create
     public function addRequest()
     {
         $sql = "INSERT INTO requests (requesters_id, requested_date) 
@@ -52,7 +51,6 @@ class Requests
         return $this->pdo->lastInsertId();
     }
 
-    // Update
     public function updateRequestStatus($requestId, RequestStatus $newStatus)
     {
         $sql = "UPDATE requests SET status = :status, ";
@@ -100,7 +98,6 @@ class Requests
         return $query->execute();
     }
 
-    // Read
     public function getAllRequests()
     {
         $sql = "SELECT * FROM requests ORDER BY requested_date DESC";
@@ -141,34 +138,40 @@ class Requests
         return $query->fetchColumn();
     }
 
-    public function getFilteredRequestsForRequester($requesterId, $reportType)
+    public function getFilteredRequestsForRequester($requesterId, $reportType, $startDate = null, $endDate = null)
     {
         $sql = "SELECT r.*, u_proc.first_name as proc_first_name, u_proc.last_name as proc_last_name
                 FROM requests r
                 LEFT JOIN users u_proc ON r.processors_id = u_proc.id
-                WHERE r.requesters_id = :requester_id ";
+                WHERE r.requesters_id = ? ";
 
-        switch ($reportType) {
-            case 'completed_90_days':
-                $sql .= "AND r.status IN ('" . RequestStatus::Released->value . "', '" . RequestStatus::Denied->value . "') ";
-                $sql .= "AND r.finished_date >= DATE_SUB(NOW(), INTERVAL 90 DAY) ";
-                break;
-            case 'in_progress':
-                $sql .= "AND r.status IN ('" . RequestStatus::Pending->value . "', '" . RequestStatus::Claimed->value . "', '" . RequestStatus::Ready->value . "') ";
-                break;
-            case 'all':
-            default:
-                // No additional filters needed
-                break;
+        $params = [$requesterId];
+
+        if ($reportType === 'in_progress') {
+            $status_params = [RequestStatus::Pending->value, RequestStatus::Claimed->value, RequestStatus::Ready->value];
+            $placeholders = implode(',', array_fill(0, count($status_params), '?'));
+            $sql .= " AND r.status IN ($placeholders)";
+            $params = array_merge($params, $status_params);
+        } elseif ($reportType === 'finished') {
+            $status_params = [RequestStatus::Released->value, RequestStatus::Denied->value];
+            $placeholders = implode(',', array_fill(0, count($status_params), '?'));
+            $sql .= " AND r.status IN ($placeholders)";
+            $params = array_merge($params, $status_params);
+        }
+        
+        if (!empty($startDate)) {
+            $sql .= " AND DATE(r.requested_date) >= ? ";
+            $params[] = $startDate;
+        }
+        if (!empty($endDate)) {
+            $sql .= " AND DATE(r.requested_date) <= ? ";
+            $params[] = $endDate;
         }
 
         $sql .= "ORDER BY r.requested_date DESC";
         
         $query = $this->pdo->prepare($sql);
-        $query->bindParam(':requester_id', $requesterId);
-        $query->execute();
+        $query->execute($params);
         return $query->fetchAll();
     }
 }
-
-?>

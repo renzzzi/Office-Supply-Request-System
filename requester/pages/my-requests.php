@@ -12,9 +12,7 @@ $usersObj = new Users($pdoConnection);
 $suppliesObj = new Supplies($pdoConnection);
 $requestSupplyObj = new RequestSupplies($pdoConnection);
 
-// Max records per page
 $records_per_page = 5;
-
 
 $page_ongoing = isset($_GET['page_ongoing']) && is_numeric($_GET['page_ongoing']) ? (int)$_GET['page_ongoing'] : 1;
 $offset_ongoing = ($page_ongoing - 1) * $records_per_page;
@@ -22,6 +20,7 @@ $ongoing_statuses = [RequestStatus::Pending->value, RequestStatus::Claimed->valu
 $total_ongoing = $requestsObj->getRequestCountByRequesterId($_SESSION['user_id'], $ongoing_statuses);
 $total_pages_ongoing = $total_ongoing > 0 ? ceil($total_ongoing / $records_per_page) : 1;
 $ongoing_requests = $requestsObj->getAllRequestsByRequesterId($_SESSION['user_id'], $ongoing_statuses, $records_per_page, $offset_ongoing);
+
 $page_finished = isset($_GET['page_finished']) && is_numeric($_GET['page_finished']) ? (int)$_GET['page_finished'] : 1;
 $offset_finished = ($page_finished - 1) * $records_per_page;
 $finished_statuses = [RequestStatus::Released->value, RequestStatus::Denied->value];
@@ -67,7 +66,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 ?>
 
-<!-- Add New Request Modal -->
 <div class="modal-container" id="add-request-modal">
     <div class="modal">
         <span class="close-button">&times;</span>
@@ -77,18 +75,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <div class="form-group">
                 <label for="item-name">Supply Name</label>
                 <div id="supply-name-error" class="error-message error"></div>
-                <input type="text" id="item-name" name="item-name" required 
-                autocomplete="off" placeholder="Start typing a supply name...">
-                <div id="supply-search-results">
-                    <!-- Search results will appear here -->
-                </div>
+                <input type="text" id="item-name" name="item-name" required autocomplete="off" placeholder="Start typing a supply name...">
+                <div id="supply-search-results"></div>
             </div>
             <div class="form-group">
                 <label for="quantity">Quantity (Per Unit)</label>
                 <div id="quantity-error" class="error-message error"></div>
                 <input type="number" id="quantity" name="quantity" required min="1">
             </div>
-
             <button type="button" class="add-supply-name-button">Add Supply to List</button>
         </form>
 
@@ -104,40 +98,54 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <th>Action</th>
                     </tr>
                 </thead>
-                <tbody id="request-table-body">
-                    <!-- Added rows will appear here -->
-                </tbody>
+                <tbody id="request-table-body"></tbody>
             </table>
-            <div id="hidden-inputs-container">
-                <!-- Hidden inputs for supplies will appear here -->
-            </div>
+            <div id="hidden-inputs-container"></div>
             <button type="submit" class="submit-request-button">Submit Request</button>
             <p id="main-request-error" class="error-message error"><?= $errors["supplies"] ?? "" ?></p>
         </form>
     </div>
 </div>
 
-<div class="page-controls">
-    <button class="open-button" data-target="#add-request-modal">Add New Request</button>
-    
-    <!-- Report Generation Dropdown -->
-    <div class="report-dropdown">
-        <button id="report-menu-btn" class="btn">Generate Report &#9662;</button>
-        <div id="report-dropdown-menu" class="dropdown-menu">
-            <a href="pages/print-report.php?report_type=all" target="_blank">Print All Requests</a>
-            <a href="../api/generate-my-requests-csv.php?report_type=all">Download All (CSV)</a>
-            <hr>
-            <a href="pages/print-report.php?report_type=completed_90_days" target="_blank">Print Finished (90 Days)</a>
-            <a href="../api/generate-my-requests-csv.php?report_type=completed_90_days">Download Finished (CSV)</a>
-            <hr>
-            <a href="pages/print-report.php?report_type=in_progress" target="_blank">Print Ongoing</a>
-            <a href="../api/generate-my-requests-csv.php?report_type=in_progress">Download Ongoing (CSV)</a>
-        </div>
+<div class="modal-container" id="report-modal">
+    <div class="modal">
+        <span class="close-button">&times;</span>
+        <h2>Generate Report</h2>
+
+        <form id="report-form" method="GET" target="_blank">
+            <div class="form-group">
+                <label for="report-type">Report Type</label>
+                <select id="report-type" name="report_type">
+                    <option value="all">All Requests</option>
+                    <option value="in_progress">Ongoing Requests</option>
+                    <option value="finished">Finished Requests</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="start-date">Start Date (Optional)</label>
+                <input type="date" id="start-date" name="start_date">
+            </div>
+
+            <div class="form-group">
+                <label for="end-date">End Date (Optional)</label>
+                <input type="date" id="end-date" name="end_date">
+            </div>
+
+            <div class="report-buttons">
+                <button type="submit" id="print-report-btn" class="btn">Print Report</button>
+                <button type="submit" id="download-csv-btn" class="btn">Download CSV</button>
+            </div>
+        </form>
     </div>
 </div>
 
+<div class="page-controls">
+    <button class="open-button" data-target="#add-request-modal">Add New Request</button>
+    <button class="open-button" data-target="#report-modal">Generate Report</button>
+</div>
+
 <div id="requests-tables-container">
-    <!-- Ongoing Requests Table -->
     <h2>Ongoing Requests</h2>
     <table border=0>
         <thead>
@@ -177,7 +185,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </tbody>
     </table>
 
-    <!-- Pagination for Ongoing Requests -->
     <?php if ($total_pages_ongoing > 1): ?>
     <div class="pagination-controls">
         <?php if ($page_ongoing <= 1): ?>
@@ -185,9 +192,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <?php else: ?>
             <a href="?page=my-requests&page_ongoing=<?= $page_ongoing - 1 ?>&page_finished=<?= $page_finished ?>" class="btn">&laquo; Prev</a>
         <?php endif; ?>
-        
         <span>Page <?= $page_ongoing ?> of <?= $total_pages_ongoing ?></span>
-        
         <?php if ($page_ongoing >= $total_pages_ongoing): ?>
             <a class="btn disabled">Next &raquo;</a>
         <?php else: ?>
@@ -196,8 +201,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </div>
     <?php endif; ?>
 
-
-    <!-- Finished Requests Table -->
     <h2>Finished Requests</h2>
     <table border=0>
         <thead>
@@ -237,7 +240,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         </tbody>
     </table>
 
-    <!-- Pagination for Finished Requests -->
     <?php if ($total_pages_finished > 1): ?>
     <div class="pagination-controls">
         <?php if ($page_finished <= 1): ?>
@@ -245,9 +247,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <?php else: ?>
             <a href="?page=my-requests&page_ongoing=<?= $page_ongoing ?>&page_finished=<?= $page_finished - 1 ?>" class="btn">&laquo; Prev</a>
         <?php endif; ?>
-
         <span>Page <?= $page_finished ?> of <?= $total_pages_finished ?></span>
-
         <?php if ($page_finished >= $total_pages_finished): ?>
             <a class="btn disabled">Next &raquo;</a>
         <?php else: ?>
@@ -258,4 +258,4 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 </div>
 
 <script src="../assets/handleNewRequestForm.js"></script>
-<script src="../assets/dropdownHandler.js"></script>
+<script src="../assets/handleReportModal.js"></script>
