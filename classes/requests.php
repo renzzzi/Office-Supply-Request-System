@@ -270,4 +270,52 @@ class Requests
         $query->execute($params);
         return $query->fetchAll();
     }
+
+    public function getRequestCountsByStatusForRequester(int $requesterId): array
+    {
+        $sql = "SELECT status, COUNT(id) as count 
+                FROM requests 
+                WHERE requesters_id = ? 
+                GROUP BY status";
+        $query = $this->pdo->prepare($sql);
+        $query->execute([$requesterId]);
+        
+        $results = $query->fetchAll(PDO::FETCH_KEY_PAIR);
+        
+        $counts = [];
+        foreach (RequestStatus::cases() as $case) {
+            $counts[$case->value] = $results[$case->value] ?? 0;
+        }
+        return $counts;
+    }
+
+    public function getTopRequestedItemsForRequester(int $requesterId, int $limit = 5): array
+    {
+        $sql = "SELECT s.name, SUM(rs.supply_quantity) as total_quantity
+                FROM request_supplies rs
+                JOIN requests r ON rs.requests_id = r.id
+                JOIN supplies s ON rs.supplies_id = s.id
+                WHERE r.requesters_id = ?
+                GROUP BY s.name
+                ORDER BY total_quantity DESC
+                LIMIT ?";
+        $query = $this->pdo->prepare($sql);
+        $query->bindValue(1, $requesterId, PDO::PARAM_INT);
+        $query->bindValue(2, $limit, PDO::PARAM_INT);
+        $query->execute();
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getRecentRequestsByRequesterId(int $requesterId, int $limit = 5): array
+    {
+        $sql = "SELECT * FROM requests 
+                WHERE requesters_id = ? 
+                ORDER BY requested_date DESC 
+                LIMIT ?";
+        $query = $this->pdo->prepare($sql);
+        $query->bindValue(1, $requesterId, PDO::PARAM_INT);
+        $query->bindValue(2, $limit, PDO::PARAM_INT);
+        $query->execute();
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

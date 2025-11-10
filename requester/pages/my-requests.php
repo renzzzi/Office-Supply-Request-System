@@ -256,6 +256,3 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </div>
     <?php endif; ?>
 </div>
-
-<script src="../assets/handleNewRequestForm.js"></script>
-<script src="../assets/handleReportModal.js"></script>
