@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         statusCounts['Denied']
                     ],
                     backgroundColor: [
-                        '#d39237', '#e3a851', '#2cb67d', '#26ac74', '#e45252'
+                        '#946728ff', '#ffa41cff', '#2e923fff', '#2cc987ff', '#e45252'
                     ],
                     borderColor: '#2a2a33',
                     borderWidth: 2

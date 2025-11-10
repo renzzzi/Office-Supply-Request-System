@@ -91,4 +91,34 @@ body:not(print) {
         size: A4;
         margin: 0.7in;
     }
+
+    .kpi-summary-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin: 1.5rem 0;
+        justify-content: space-around;
+    }
+
+    .kpi-summary-card {
+        border: 1px solid #999;
+        padding: 0.75rem;
+        text-align: center;
+        width: 22%;
+        min-width: 150px;
+    }
+
+    .kpi-summary-card span {
+        display: block;
+        font-size: 10pt;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .kpi-summary-card strong {
+        display: block;
+        font-size: 20pt;
+        font-weight: bold;
+        color: #000;
+    }
 }

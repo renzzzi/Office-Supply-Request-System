@@ -8,6 +8,7 @@ $requestsObj = new Requests($pdoConnection);
 $usersObj = new Users($pdoConnection);
 $requester_id = $_SESSION['user_id'];
 
+// For the dashboard display, we fetch data without date filters (all time)
 $statusCounts = $requestsObj->getRequestCountsByStatusForRequester($requester_id);
 $topItems = $requestsObj->getTopRequestedItemsForRequester($requester_id);
 $recentRequests = $requestsObj->getRecentRequestsByRequesterId($requester_id);
@@ -25,6 +26,31 @@ $topItemData = json_encode(array_column($topItems, 'total_quantity'));
      data-top-items-labels='<?= $topItemLabels ?>'
      data-top-items-data='<?= $topItemData ?>'
      style="display: none;">
+</div>
+
+<div class="modal-container" id="report-modal">
+    <div class="modal">
+        <span class="close-button">&times;</span>
+        <h2>Generate Dashboard Report</h2>
+        <form id="report-form" method="GET" target="_blank">
+            <div class="form-group">
+                <label for="start-date">Start Date (Optional)</label>
+                <input type="date" id="start-date" name="start_date">
+            </div>
+            <div class="form-group">
+                <label for="end-date">End Date (Optional)</label>
+                <input type="date" id="end-date" name="end_date">
+            </div>
+            <div class="report-buttons">
+                <button type="submit" id="print-report-btn" class="btn" data-action="pages/print-dashboard-report.php">Print Report</button>
+                <button type="submit" id="download-csv-btn" class="btn" data-action="../api/generate-dashboard-csv.php">Download CSV</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="page-controls">
+    <button class="open-button" data-target="#report-modal">Generate Report</button>
 </div>
 
 <div class="kpi-container">

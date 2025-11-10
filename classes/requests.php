@@ -1,7 +1,5 @@
 <?php
 
-use LDAP\Result;
-
 require_once "database.php";
 
 enum RequestStatus: string
@@ -186,6 +184,25 @@ class Requests
         return $query->fetchAll();
     }
 
+    public function getPaginatedRequestsByProcessorIdAndStatuses(int $processorId, array $statusFilter, int $limit, int $offset)
+    {
+        $placeholders = implode(',', array_fill(0, count($statusFilter), '?'));
+        $sql = "SELECT * FROM requests 
+                WHERE processors_id = ? AND status IN ($placeholders)
+                ORDER BY finished_date DESC, requested_date DESC 
+                LIMIT ? OFFSET ?";
+
+        $query = $this->pdo->prepare($sql);
+        $params = array_merge([$processorId], $statusFilter, [$limit, $offset]);
+        
+        foreach ($params as $key => $value) {
+            $query->bindValue($key + 1, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        
+        $query->execute();
+        return $query->fetchAll();
+    }
+
     public function getCountByStatus(RequestStatus $status): int
     {
         $sql = "SELECT COUNT(id) FROM requests WHERE status = ?";
@@ -211,6 +228,17 @@ class Requests
         $sql = "SELECT COUNT(id) FROM requests WHERE processors_id = ? AND status = ?";
         $query = $this->pdo->prepare($sql);
         $query->execute([$processorId, $status->value]);
+        return (int)$query->fetchColumn();
+    }
+
+    public function getCountByProcessorIdAndStatuses(int $processorId, array $statusFilter): int
+    {
+        $placeholders = implode(',', array_fill(0, count($statusFilter), '?'));
+        $sql = "SELECT COUNT(id) FROM requests WHERE processors_id = ? AND status IN ($placeholders)";
+
+        $query = $this->pdo->prepare($sql);
+        $params = array_merge([$processorId], $statusFilter);
+        $query->execute($params);
         return (int)$query->fetchColumn();
     }
 
@@ -271,14 +299,26 @@ class Requests
         return $query->fetchAll();
     }
 
-    public function getRequestCountsByStatusForRequester(int $requesterId): array
+    public function getRequestCountsByStatusForRequester(int $requesterId, ?string $startDate = null, ?string $endDate = null): array
     {
         $sql = "SELECT status, COUNT(id) as count 
                 FROM requests 
-                WHERE requesters_id = ? 
-                GROUP BY status";
+                WHERE requesters_id = ? ";
+        
+        $params = [$requesterId];
+
+        if ($startDate) {
+            $sql .= " AND DATE(requested_date) >= ? ";
+            $params[] = $startDate;
+        }
+        if ($endDate) {
+            $sql .= " AND DATE(requested_date) <= ? ";
+            $params[] = $endDate;
+        }
+
+        $sql .= " GROUP BY status";
         $query = $this->pdo->prepare($sql);
-        $query->execute([$requesterId]);
+        $query->execute($params);
         
         $results = $query->fetchAll(PDO::FETCH_KEY_PAIR);
         
@@ -289,19 +329,36 @@ class Requests
         return $counts;
     }
 
-    public function getTopRequestedItemsForRequester(int $requesterId, int $limit = 5): array
+    public function getTopRequestedItemsForRequester(int $requesterId, int $limit = 5, ?string $startDate = null, ?string $endDate = null): array
     {
         $sql = "SELECT s.name, SUM(rs.supply_quantity) as total_quantity
                 FROM request_supplies rs
                 JOIN requests r ON rs.requests_id = r.id
                 JOIN supplies s ON rs.supplies_id = s.id
-                WHERE r.requesters_id = ?
-                GROUP BY s.name
-                ORDER BY total_quantity DESC
-                LIMIT ?";
+                WHERE r.requesters_id = ? ";
+
+        $params = [$requesterId];
+
+        if ($startDate) {
+            $sql .= " AND DATE(r.requested_date) >= ? ";
+            $params[] = $startDate;
+        }
+        if ($endDate) {
+            $sql .= " AND DATE(r.requested_date) <= ? ";
+            $params[] = $endDate;
+        }
+
+        $sql .= " GROUP BY s.name ORDER BY total_quantity DESC LIMIT ?";
+        
         $query = $this->pdo->prepare($sql);
-        $query->bindValue(1, $requesterId, PDO::PARAM_INT);
-        $query->bindValue(2, $limit, PDO::PARAM_INT);
+
+        $paramIndex = 1;
+        foreach ($params as $param) {
+            $query->bindValue($paramIndex++, $param);
+        }
+
+        $query->bindValue($paramIndex, $limit, PDO::PARAM_INT);
+
         $query->execute();
         return $query->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -314,6 +371,74 @@ class Requests
                 LIMIT ?";
         $query = $this->pdo->prepare($sql);
         $query->bindValue(1, $requesterId, PDO::PARAM_INT);
+        $query->bindValue(2, $limit, PDO::PARAM_INT);
+        $query->execute();
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getAllRequestsInDateRangeForRequester(int $requesterId, ?string $startDate = null, ?string $endDate = null): array
+    {
+        $sql = "SELECT r.*, p.first_name as proc_first_name, p.last_name as proc_last_name
+                FROM requests r
+                LEFT JOIN users p ON r.processors_id = p.id
+                WHERE r.requesters_id = ? ";
+        
+        $params = [$requesterId];
+
+        if ($startDate) {
+            $sql .= " AND DATE(r.requested_date) >= ? ";
+            $params[] = $startDate;
+        }
+        if ($endDate) {
+            $sql .= " AND DATE(r.requested_date) <= ? ";
+            $params[] = $endDate;
+        }
+
+        $sql .= " ORDER BY r.requested_date DESC";
+        $query = $this->pdo->prepare($sql);
+        $query->execute($params);
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getCountCompletedTodayByProcessor(int $processorId): int
+    {
+        $sql = "SELECT COUNT(id) FROM requests 
+                WHERE processors_id = ? 
+                AND status IN (?, ?) 
+                AND DATE(finished_date) = CURDATE()";
+        
+        $query = $this->pdo->prepare($sql);
+        $params = [$processorId, RequestStatus::Released->value, RequestStatus::Denied->value];
+        $query->execute($params);
+        return (int)$query->fetchColumn();
+    }
+
+    public function getTopRequestedItemsSystemWide(int $limit = 5): array
+    {
+        $sql = "SELECT s.name, SUM(rs.supply_quantity) as total_quantity
+                FROM request_supplies rs
+                JOIN supplies s ON rs.supplies_id = s.id
+                GROUP BY s.name
+                ORDER BY total_quantity DESC
+                LIMIT ?";
+        
+        $query = $this->pdo->prepare($sql);
+        $query->bindValue(1, $limit, PDO::PARAM_INT);
+        $query->execute();
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getRecentActionsByProcessor(int $processorId, int $limit = 5): array
+    {
+        $sql = "SELECT r.*, u.first_name, u.last_name
+                FROM requests r
+                JOIN users u ON r.requesters_id = u.id
+                WHERE r.processors_id = ? 
+                ORDER BY r.updated_at DESC 
+                LIMIT ?";
+        
+        $query = $this->pdo->prepare($sql);
+        $query->bindValue(1, $processorId, PDO::PARAM_INT);
         $query->bindValue(2, $limit, PDO::PARAM_INT);
         $query->execute();
         return $query->fetchAll(PDO::FETCH_ASSOC);

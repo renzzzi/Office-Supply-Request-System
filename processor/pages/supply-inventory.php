@@ -14,7 +14,6 @@ $lowStockThreshold = 5;
 ?>
 
 <h2>Supply Inventory</h2>
-<p>This table shows the current inventory of all supplies in the system.</p>
 
 <table border="1">
     <thead>

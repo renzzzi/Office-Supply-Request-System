@@ -12,7 +12,7 @@ if (!isset($_SESSION["user_id"]) || $_SESSION["user_role"] !== "Processor")
 require_once "partials/header.php";
 
 // Main
-$page = $_GET["page"] ?? "manage-requests";
+$page = $_GET["page"] ?? "dashboard";
 $pageToShow = "pages/" . $page . ".php";
 require_once $pageToShow;
 

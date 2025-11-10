@@ -59,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $requestSupplyObj->addRequestSupply();
         }
 
-        header("Location: index.php?page=my-requests"); 
+        header("Location: index.php?page=my-requests#ongoing-requests"); 
         exit();
     }
 }
@@ -146,7 +146,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 </div>
 
 <div id="requests-tables-container">
-    <h2>Ongoing Requests</h2>
+    <h2 id="ongoing-requests">Ongoing Requests</h2>
     <table border=0>
         <thead>
             <tr>
@@ -187,21 +187,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     <?php if ($total_pages_ongoing > 1): ?>
     <div class="pagination-controls">
-        <?php if ($page_ongoing <= 1): ?>
-            <a class="btn disabled">&laquo; Prev</a>
-        <?php else: ?>
-            <a href="?page=my-requests&page_ongoing=<?= $page_ongoing - 1 ?>&page_finished=<?= $page_finished ?>" class="btn">&laquo; Prev</a>
-        <?php endif; ?>
+        <a href="?page=my-requests&page_ongoing=<?= $page_ongoing - 1 ?>&page_finished=<?= $page_finished ?>#ongoing-requests" class="btn <?= $page_ongoing <= 1 ? 'disabled' : '' ?>">&laquo; Prev</a>
         <span>Page <?= $page_ongoing ?> of <?= $total_pages_ongoing ?></span>
-        <?php if ($page_ongoing >= $total_pages_ongoing): ?>
-            <a class="btn disabled">Next &raquo;</a>
-        <?php else: ?>
-            <a href="?page=my-requests&page_ongoing=<?= $page_ongoing + 1 ?>&page_finished=<?= $page_finished ?>" class="btn">Next &raquo;</a>
-        <?php endif; ?>
+        <a href="?page=my-requests&page_ongoing=<?= $page_ongoing + 1 ?>&page_finished=<?= $page_finished ?>#ongoing-requests" class="btn <?= $page_ongoing >= $total_pages_ongoing ? 'disabled' : '' ?>">Next &raquo;</a>
     </div>
     <?php endif; ?>
 
-    <h2>Finished Requests</h2>
+    <h2 id="finished-requests">Finished Requests</h2>
     <table border=0>
         <thead>
             <tr>
@@ -242,17 +234,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     <?php if ($total_pages_finished > 1): ?>
     <div class="pagination-controls">
-        <?php if ($page_finished <= 1): ?>
-            <a class="btn disabled">&laquo; Prev</a>
-        <?php else: ?>
-            <a href="?page=my-requests&page_ongoing=<?= $page_ongoing ?>&page_finished=<?= $page_finished - 1 ?>" class="btn">&laquo; Prev</a>
-        <?php endif; ?>
+        <a href="?page=my-requests&page_ongoing=<?= $page_ongoing ?>&page_finished=<?= $page_finished - 1 ?>#finished-requests" class="btn <?= $page_finished <= 1 ? 'disabled' : '' ?>">&laquo; Prev</a>
         <span>Page <?= $page_finished ?> of <?= $total_pages_finished ?></span>
-        <?php if ($page_finished >= $total_pages_finished): ?>
-            <a class="btn disabled">Next &raquo;</a>
-        <?php else: ?>
-            <a href="?page=my-requests&page_ongoing=<?= $page_ongoing ?>&page_finished=<?= $page_finished + 1 ?>" class="btn">Next &raquo;</a>
-        <?php endif; ?>
+        <a href="?page=my-requests&page_ongoing=<?= $page_ongoing ?>&page_finished=<?= $page_finished + 1 ?>#finished-requests" class="btn <?= $page_finished >= $total_pages_finished ? 'disabled' : '' ?>">Next &raquo;</a>
     </div>
     <?php endif; ?>
 </div>

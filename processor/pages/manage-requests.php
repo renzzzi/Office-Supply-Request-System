@@ -25,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
     {
         $requestsObj->setProcessorId($request_id, $current_processor_id);
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Claimed);
-        header("Location: index.php?page=manage-requests");
+        header("Location: index.php?page=manage-requests#claimed-requests");
         exit();
     } 
     elseif ($action === "ready") 
@@ -77,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
         if (!$isValid) 
         {
             $_SESSION['form_error'] = $errorMessage;
-            header("Location: index.php?page=manage-requests");
+            header("Location: index.php?page=manage-requests#claimed-requests");
             exit();
         }
 
@@ -98,14 +98,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
 
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Ready);
         $_SESSION['form_success'] = "Request #{$request_id} has been marked as Ready for Pickup.";
-        header("Location: index.php?page=manage-requests");
+        header("Location: index.php?page=manage-requests#ready-requests");
         exit();
 
     }
     elseif ($action === "deny") 
     {
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Denied);
-        header("Location: index.php?page=manage-requests");
+        header("Location: index.php?page=manage-requests#finished-requests");
         exit();
     }
     elseif ($action === "release") 
@@ -126,7 +126,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
             $requestsObj->setReleasedTo($request_id, $_POST["released_to"]);
             $requestsObj->updateRequestStatus($request_id, RequestStatus::Released);
 
-            header("Location: index.php?page=manage-requests");
+            header("Location: index.php?page=manage-requests#finished-requests");
             exit();
         }
     }
@@ -155,19 +155,13 @@ $total_ready = $requestsObj->getCountByProcessorIdAndStatus($current_processor_i
 $total_pages_ready = $total_ready > 0 ? ceil($total_ready / $records_per_page) : 1;
 $ready_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatus($current_processor_id, RequestStatus::Ready, $records_per_page, $offset_ready);
 
-// Pagination for Released
-$page_released = isset($_GET['page_released']) && is_numeric($_GET['page_released']) ? (int)$_GET['page_released'] : 1;
-$offset_released = ($page_released - 1) * $records_per_page;
-$total_released = $requestsObj->getCountByProcessorIdAndStatus($current_processor_id, RequestStatus::Released);
-$total_pages_released = $total_released > 0 ? ceil($total_released / $records_per_page) : 1;
-$released_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatus($current_processor_id, RequestStatus::Released, $records_per_page, $offset_released);
-
-// Pagination for Denied
-$page_denied = isset($_GET['page_denied']) && is_numeric($_GET['page_denied']) ? (int)$_GET['page_denied'] : 1;
-$offset_denied = ($page_denied - 1) * $records_per_page;
-$total_denied = $requestsObj->getCountByProcessorIdAndStatus($current_processor_id, RequestStatus::Denied);
-$total_pages_denied = $total_denied > 0 ? ceil($total_denied / $records_per_page) : 1;
-$denied_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatus($current_processor_id, RequestStatus::Denied, $records_per_page, $offset_denied);
+// Unified Pagination for Finished
+$page_finished = isset($_GET['page_finished']) && is_numeric($_GET['page_finished']) ? (int)$_GET['page_finished'] : 1;
+$offset_finished = ($page_finished - 1) * $records_per_page;
+$finished_statuses = [RequestStatus::Released->value, RequestStatus::Denied->value];
+$total_finished = $requestsObj->getCountByProcessorIdAndStatuses($current_processor_id, $finished_statuses);
+$total_pages_finished = $total_finished > 0 ? ceil($total_finished / $records_per_page) : 1;
+$finished_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatuses($current_processor_id, $finished_statuses, $records_per_page, $offset_finished);
 ?>
 
 <div class="modal-container" id="supply-details-modal">
@@ -254,7 +248,7 @@ $denied_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatus($cur
     <button class="open-button" data-target="#report-modal">Generate Request Report</button>
 </div>
 
-<h2>Pending Requests</h2>
+<h2 id="pending-requests">Pending Requests</h2>
 <table>
     <thead>
         <tr>
@@ -318,14 +312,14 @@ $denied_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatus($cur
 </table>
 <?php if ($total_pages_pending > 1): ?>
 <div class="pagination-controls">
-    <a href="?page=manage-requests&page_pending=<?= $page_pending - 1 ?>" class="btn <?= $page_pending <= 1 ? 'disabled' : '' ?>">&laquo; Prev</a>
+    <a href="?page=manage-requests&page_pending=<?= $page_pending - 1 ?>#pending-requests" class="btn <?= $page_pending <= 1 ? 'disabled' : '' ?>">&laquo; Prev</a>
     <span>Page <?= $page_pending ?> of <?= $total_pages_pending ?></span>
-    <a href="?page=manage-requests&page_pending=<?= $page_pending + 1 ?>" class="btn <?= $page_pending >= $total_pages_pending ? 'disabled' : '' ?>">Next &raquo;</a>
+    <a href="?page=manage-requests&page_pending=<?= $page_pending + 1 ?>#pending-requests" class="btn <?= $page_pending >= $total_pages_pending ? 'disabled' : '' ?>">Next &raquo;</a>
 </div>
 <?php endif; ?>
 
 
-<h2>My Claimed Requests</h2>
+<h2 id="claimed-requests">My Claimed Requests</h2>
 <table>
     <thead>
         <tr>
@@ -385,14 +379,14 @@ $denied_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatus($cur
 </table>
 <?php if ($total_pages_claimed > 1): ?>
 <div class="pagination-controls">
-    <a href="?page=manage-requests&page_claimed=<?= $page_claimed - 1 ?>" class="btn <?= $page_claimed <= 1 ? 'disabled' : '' ?>">&laquo; Prev</a>
+    <a href="?page=manage-requests&page_claimed=<?= $page_claimed - 1 ?>#claimed-requests" class="btn <?= $page_claimed <= 1 ? 'disabled' : '' ?>">&laquo; Prev</a>
     <span>Page <?= $page_claimed ?> of <?= $total_pages_claimed ?></span>
-    <a href="?page=manage-requests&page_claimed=<?= $page_claimed + 1 ?>" class="btn <?= $page_claimed >= $total_pages_claimed ? 'disabled' : '' ?>">Next &raquo;</a>
+    <a href="?page=manage-requests&page_claimed=<?= $page_claimed + 1 ?>#claimed-requests" class="btn <?= $page_claimed >= $total_pages_claimed ? 'disabled' : '' ?>">Next &raquo;</a>
 </div>
 <?php endif; ?>
 
 
-<h2>My Ready For Pickup Requests</h2>
+<h2 id="ready-requests">My Ready For Pickup Requests</h2>
 <table>
     <thead>
         <tr>
@@ -444,14 +438,14 @@ $denied_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatus($cur
 </table>
 <?php if ($total_pages_ready > 1): ?>
 <div class="pagination-controls">
-    <a href="?page=manage-requests&page_ready=<?= $page_ready - 1 ?>" class="btn <?= $page_ready <= 1 ? 'disabled' : '' ?>">&laquo; Prev</a>
+    <a href="?page=manage-requests&page_ready=<?= $page_ready - 1 ?>#ready-requests" class="btn <?= $page_ready <= 1 ? 'disabled' : '' ?>">&laquo; Prev</a>
     <span>Page <?= $page_ready ?> of <?= $total_pages_ready ?></span>
-    <a href="?page=manage-requests&page_ready=<?= $page_ready + 1 ?>" class="btn <?= $page_ready >= $total_pages_ready ? 'disabled' : '' ?>">Next &raquo;</a>
+    <a href="?page=manage-requests&page_ready=<?= $page_ready + 1 ?>#ready-requests" class="btn <?= $page_ready >= $total_pages_ready ? 'disabled' : '' ?>">Next &raquo;</a>
 </div>
 <?php endif; ?>
 
 
-<h2>My Finished Requests</h2>
+<h2 id="finished-requests">My Finished Requests</h2>
 <table>
     <thead>
         <tr>
@@ -464,12 +458,6 @@ $denied_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatus($cur
         </tr>
     </thead>
     <tbody>
-        <?php
-            $finished_requests = array_merge($released_requests, $denied_requests);
-            usort($finished_requests, function($a, $b) {
-                return strtotime($b['finished_date']) - strtotime($a['finished_date']);
-            });
-        ?>
         <?php if (empty($finished_requests)): ?>
             <tr class="empty-table-message"><td colspan="6">You have no finished requests.</td></tr>
         <?php else: ?>
@@ -509,8 +497,10 @@ $denied_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatus($cur
         <?php endif; ?>
     </tbody>
 </table>
-
-<script src="../assets/prepareSupplyListRequest.js"></script>
-<script src="../assets/viewRequestSuppliesDetails.js"></script>
-<script src="../assets/releaseModalValidation.js"></script>
-<script src="../assets/handleReportModal.js"></script>
+<?php if ($total_pages_finished > 1): ?>
+<div class="pagination-controls">
+    <a href="?page=manage-requests&page_finished=<?= $page_finished - 1 ?>#finished-requests" class="btn <?= $page_finished <= 1 ? 'disabled' : '' ?>">&laquo; Prev</a>
+    <span>Page <?= $page_finished ?> of <?= $total_pages_finished ?></span>
+    <a href="?page=manage-requests&page_finished=<?= $page_finished + 1 ?>#finished-requests" class="btn <?= $page_finished >= $total_pages_finished ? 'disabled' : '' ?>">Next &raquo;</a>
+</div>
+<?php endif; ?>
