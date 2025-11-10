@@ -1,17 +1,14 @@
 CREATE DATABASE IF NOT EXISTS supply_desk;
 USE supply_desk;
 
--- Dropping Tables if they exist
--- For quick database resets
-
+DROP TABLE IF EXISTS stock_logs;
+DROP TABLE IF EXISTS activity_logs;
 DROP TABLE IF EXISTS request_supplies;
 DROP TABLE IF EXISTS supplies;
 DROP TABLE IF EXISTS supply_categories;
 DROP TABLE IF EXISTS requests;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS departments;
-
--- Creating Tables
 
 CREATE TABLE departments (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -37,12 +34,12 @@ CREATE TABLE requests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     requesters_id INT NOT NULL,
     processors_id INT,
-    released_to VARCHAR(100), -- Name of the user who will pick up the supplies
+    released_to VARCHAR(100),
 
-    requested_date DATETIME NOT NULL, -- When the request was made
-    claimed_date DATETIME, -- When a processor claims and starts working on the request
-    ready_date DATETIME, -- When the request is now ready for pickup
-    finished_date DATETIME, -- When the request has either been released or denied
+    requested_date DATETIME NOT NULL,
+    claimed_date DATETIME,
+    ready_date DATETIME,
+    finished_date DATETIME,
     
     status ENUM('Pending', 'Claimed', 'Ready For Pickup', 'Released', 'Denied') NOT NULL DEFAULT 'Pending',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -56,7 +53,7 @@ CREATE TABLE requests (
     CONSTRAINT fk_requests_users_processor
         FOREIGN KEY (processors_id) REFERENCES users(id)
         ON UPDATE CASCADE
-        ON DELETE RESTRICT
+        ON DELETE SET NULL
 );
 
 CREATE TABLE supply_categories (
@@ -88,14 +85,45 @@ CREATE TABLE request_supplies (
     CONSTRAINT fk_request_supplies_requests
         FOREIGN KEY (requests_id) REFERENCES requests(id)
         ON UPDATE CASCADE
-        ON DELETE RESTRICT,
+        ON DELETE CASCADE,
     CONSTRAINT fk_request_supplies_supplies
         FOREIGN KEY (supplies_id) REFERENCES supplies(id)
         ON UPDATE CASCADE
-        ON DELETE RESTRICT
+        ON DELETE CASCADE
 );
 
--- Seeding Initial Data
+CREATE TABLE stock_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    supplies_id INT NOT NULL,
+    requests_id INT NULL,
+    change_amount INT NOT NULL,
+    new_quantity INT NOT NULL,
+    reason VARCHAR(255) NOT NULL,
+    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_stock_logs_supplies
+        FOREIGN KEY (supplies_id) REFERENCES supplies(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT fk_stock_logs_requests
+        FOREIGN KEY (requests_id) REFERENCES requests(id)
+        ON UPDATE CASCADE
+        ON DELETE SET NULL
+);
+
+CREATE TABLE activity_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NULL,
+    ip_address VARCHAR(45) NOT NULL,
+    action_type VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_activity_logs_users
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON UPDATE CASCADE
+        ON DELETE SET NULL
+);
 
 INSERT INTO departments (name) VALUES
 ('Marketing'),

@@ -120,7 +120,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
     
             foreach ($suppliesToRelease as $supply) 
             {
-                $suppliesObj->deductStock($supply['supplies_id'], $supply['supply_quantity']);
+                $suppliesObj->deductStock($supply['supplies_id'], $supply['supply_quantity'], $request_id);
             }
         
             $requestsObj->setReleasedTo($request_id, $_POST["released_to"]);

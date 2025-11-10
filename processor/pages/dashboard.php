@@ -6,9 +6,10 @@ $pdoConnection = (new Database())->connect();
 $requestsObj = new Requests($pdoConnection);
 $processor_id = $_SESSION['user_id'];
 
+// Dashboard display fetches data for "all time" or specific defaults
 $pendingCount = $requestsObj->getCountByStatus(RequestStatus::Pending);
 $myActiveCount = $requestsObj->getCountByProcessorIdAndStatuses($processor_id, [RequestStatus::Claimed->value, RequestStatus::Ready->value]);
-$myCompletedToday = $requestsObj->getCountCompletedTodayByProcessor($processor_id);
+$myCompletedToday = $requestsObj->getCountCompletedTodayByProcessor($processor_id); // This defaults to today
 $readyForPickupCount = $requestsObj->getCountByStatus(RequestStatus::Ready);
 $recentActions = $requestsObj->getRecentActionsByProcessor($processor_id);
 $topSystemItems = $requestsObj->getTopRequestedItemsSystemWide();
@@ -26,6 +27,32 @@ $topSystemItemData = json_encode(array_column($topSystemItems, 'total_quantity')
      data-top-system-items-labels='<?= $topSystemItemLabels ?>'
      data-top-system-items-data='<?= $topSystemItemData ?>'
      style="display: none;">
+</div>
+
+<div class="modal-container" id="report-modal">
+    <div class="modal">
+        <span class="close-button">&times;</span>
+        <h2>Generate Dashboard Report</h2>
+        <p>Select a date range to generate a report of the dashboard's data. Leave blank for default data.</p>
+        <form id="report-form" method="GET" target="_blank">
+            <div class="form-group">
+                <label for="start-date">Start Date (Optional)</label>
+                <input type="date" id="start-date" name="start_date">
+            </div>
+            <div class="form-group">
+                <label for="end-date">End Date (Optional)</label>
+                <input type="date" id="end-date" name="end_date">
+            </div>
+            <div class="report-buttons">
+                <button type="submit" id="print-report-btn" class="btn" data-action="pages/print-processor-dashboard-report.php">Print Report</button>
+                <button type="submit" id="download-csv-btn" class="btn" data-action="../api/generate-processor-dashboard-csv.php">Download CSV</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="page-controls">
+    <button class="open-button" data-target="#report-modal">Generate Report</button>
 </div>
 
 <div class="kpi-container">

@@ -1,6 +1,6 @@
 <?php
 
-require_once "database.php";
+require_once __DIR__ . '/database.php';
 
 enum RequestStatus: string
 {
@@ -400,30 +400,63 @@ class Requests
         return $query->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function getCountCompletedTodayByProcessor(int $processorId): int
+    public function getCountCompletedTodayByProcessor(int $processorId, ?string $startDate = null, ?string $endDate = null): int
     {
         $sql = "SELECT COUNT(id) FROM requests 
                 WHERE processors_id = ? 
-                AND status IN (?, ?) 
-                AND DATE(finished_date) = CURDATE()";
+                AND status IN (?, ?) ";
+        
+        $params = [$processorId, RequestStatus::Released->value, RequestStatus::Denied->value];
+
+        if ($startDate && $endDate) {
+            $sql .= " AND DATE(finished_date) BETWEEN ? AND ? ";
+            $params[] = $startDate;
+            $params[] = $endDate;
+        } elseif ($startDate) {
+            $sql .= " AND DATE(finished_date) >= ? ";
+            $params[] = $startDate;
+        } elseif ($endDate) {
+            $sql .= " AND DATE(finished_date) <= ? ";
+            $params[] = $endDate;
+        } else {
+             $sql .= " AND DATE(finished_date) = CURDATE() ";
+        }
         
         $query = $this->pdo->prepare($sql);
-        $params = [$processorId, RequestStatus::Released->value, RequestStatus::Denied->value];
         $query->execute($params);
         return (int)$query->fetchColumn();
     }
 
-    public function getTopRequestedItemsSystemWide(int $limit = 5): array
+    public function getTopRequestedItemsSystemWide(int $limit = 5, ?string $startDate = null, ?string $endDate = null): array
     {
         $sql = "SELECT s.name, SUM(rs.supply_quantity) as total_quantity
                 FROM request_supplies rs
+                JOIN requests r ON rs.requests_id = r.id
                 JOIN supplies s ON rs.supplies_id = s.id
-                GROUP BY s.name
-                ORDER BY total_quantity DESC
-                LIMIT ?";
+                WHERE 1=1 ";
+
+        $params = [];
+
+        if ($startDate) {
+            $sql .= " AND DATE(r.requested_date) >= ? ";
+            $params[] = $startDate;
+        }
+        if ($endDate) {
+            $sql .= " AND DATE(r.requested_date) <= ? ";
+            $params[] = $endDate;
+        }
+
+        $sql .= " GROUP BY s.name ORDER BY total_quantity DESC LIMIT ?";
         
         $query = $this->pdo->prepare($sql);
-        $query->bindValue(1, $limit, PDO::PARAM_INT);
+
+        $paramIndex = 1;
+        foreach ($params as $param) {
+            $query->bindValue($paramIndex++, $param);
+        }
+
+        $query->bindValue($paramIndex, $limit, PDO::PARAM_INT);
+        
         $query->execute();
         return $query->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -440,6 +473,67 @@ class Requests
         $query = $this->pdo->prepare($sql);
         $query->bindValue(1, $processorId, PDO::PARAM_INT);
         $query->bindValue(2, $limit, PDO::PARAM_INT);
+        $query->execute();
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getRequestCountByStatuses(array $statusFilter): int
+    {
+        $placeholders = implode(',', array_fill(0, count($statusFilter), '?'));
+        $sql = "SELECT COUNT(id) FROM requests WHERE status IN ($placeholders)";
+        $query = $this->pdo->prepare($sql);
+        $query->execute($statusFilter);
+        return (int)$query->fetchColumn();
+    }
+
+    public function getRequestCountCompletedToday(): int
+    {
+        $sql = "SELECT COUNT(id) FROM requests 
+                WHERE status IN (?, ?) AND DATE(finished_date) = CURDATE()";
+        $query = $this->pdo->prepare($sql);
+        $query->execute([RequestStatus::Released->value, RequestStatus::Denied->value]);
+        return (int)$query->fetchColumn();
+    }
+
+    public function getRequestVolumeByDepartment(?string $startDate = null, ?string $endDate = null): array
+    {
+        $sql = "SELECT d.name, COUNT(r.id) as request_count
+                FROM requests r
+                JOIN users u ON r.requesters_id = u.id
+                JOIN departments d ON u.departments_id = d.id
+                WHERE 1=1 ";
+
+        $params = [];
+
+        if ($startDate) {
+            $sql .= " AND DATE(r.requested_date) >= ? ";
+            $params[] = $startDate;
+        }
+        if ($endDate) {
+            $sql .= " AND DATE(r.requested_date) <= ? ";
+            $params[] = $endDate;
+        }
+
+        $sql .= " GROUP BY d.name ORDER BY request_count DESC";
+        $query = $this->pdo->prepare($sql);
+        $query->execute($params);
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getRecentSystemActivity(int $limit = 10): array
+    {
+        $sql = "SELECT 
+                    r.id, r.status, r.updated_at,
+                    req.first_name as req_first_name, req.last_name as req_last_name,
+                    proc.first_name as proc_first_name, proc.last_name as proc_last_name
+                FROM requests r
+                JOIN users req ON r.requesters_id = req.id
+                LEFT JOIN users proc ON r.processors_id = proc.id
+                ORDER BY r.updated_at DESC
+                LIMIT ?";
+        
+        $query = $this->pdo->prepare($sql);
+        $query->bindValue(1, $limit, PDO::PARAM_INT);
         $query->execute();
         return $query->fetchAll(PDO::FETCH_ASSOC);
     }

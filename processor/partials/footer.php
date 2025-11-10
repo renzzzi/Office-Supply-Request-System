@@ -8,6 +8,7 @@
 
     if ($currentPage === 'dashboard') {
         echo '<script src="../assets/processorDashboardCharts.js"></script>';
+        echo '<script src="../assets/handleReportModal.js"></script>';
     }
 
     if ($currentPage === 'manage-requests') {

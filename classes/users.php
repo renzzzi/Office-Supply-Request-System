@@ -1,6 +1,6 @@
 <?php
 
-require_once "database.php";
+require_once __DIR__ . '/database.php';
 
 class Users
 {
@@ -19,6 +19,22 @@ class Users
         $this->pdo = $pdo;
     }
 
+    public function hasRequests(int $userId): bool
+    {
+        $sql = "SELECT 1 FROM requests WHERE requesters_id = ? OR processors_id = ? LIMIT 1";
+        $query = $this->pdo->prepare($sql);
+        $query->execute([$userId, $userId]);
+        return $query->fetchColumn() !== false;
+    }
+
+    public function isEmailTakenByAnotherUser(string $email, int $currentUserId): bool
+    {
+        $sql = "SELECT id FROM users WHERE email = ? AND id != ? LIMIT 1";
+        $query = $this->pdo->prepare($sql);
+        $query->execute([$email, $currentUserId]);
+        return $query->fetchColumn() !== false;
+    }
+
     public function addUser()
     {
         $sql = "INSERT INTO users (first_name, last_name, email, password_hash, departments_id, role) 
@@ -33,6 +49,20 @@ class Users
         $query->bindParam(":role", $this->role);
 
         return $query->execute();
+    }
+
+    public function updateUser(int $userId, string $firstName, string $lastName, string $email, int $departmentId, string $role): bool
+    {
+        $sql = "UPDATE users SET first_name = ?, last_name = ?, email = ?, departments_id = ?, role = ? WHERE id = ?";
+        $query = $this->pdo->prepare($sql);
+        return $query->execute([$firstName, $lastName, $email, $departmentId, $role, $userId]);
+    }
+
+    public function deleteUser(int $userId): bool
+    {
+        $sql = "DELETE FROM users WHERE id = ?";
+        $query = $this->pdo->prepare($sql);
+        return $query->execute([$userId]);
     }
 
     public function getAllUsers()
@@ -56,15 +86,13 @@ class Users
         return $query->fetch();
     }
 
-    public function getUserById($userId)
+    public function getUserById(int $userId): ?array
     {
-        $sql = "SELECT * FROM users WHERE id = :id";
-
+        $sql = "SELECT * FROM users WHERE id = ?";
         $query = $this->pdo->prepare($sql);
-        $query->bindParam(":id", $userId);
-        $query->execute();
-        
-        return $query->fetch();
+        $query->execute([$userId]);
+        $result = $query->fetch();
+        return $result ?: null;
     }
 
     public function getUsersByName($search)
