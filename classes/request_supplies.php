@@ -108,6 +108,18 @@ class RequestSupplies
         $query->execute([":request_id" => $requestId]);
         return $query->fetchAll();
     }
+
+    public function calculateRequestValue(int $requestId): float
+    {
+        $sql = "SELECT SUM(rs.supply_quantity * s.price_per_unit) as total_value 
+                FROM request_supplies rs 
+                JOIN supplies s ON rs.supplies_id = s.id 
+                WHERE rs.requests_id = ?";
+        $query = $this->pdo->prepare($sql);
+        $query->execute([$requestId]);
+        $result = $query->fetch();
+        return $result['total_value'] ? (float)$result['total_value'] : 0.0;
+    }
 }
 
 ?>

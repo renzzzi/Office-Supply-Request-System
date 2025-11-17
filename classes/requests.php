@@ -537,4 +537,24 @@ class Requests
         $query->execute();
         return $query->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function getRequesterInfoByRequestId(int $requestId): ?array
+    {
+        $sql = "SELECT u.id, u.email, u.first_name, u.last_name
+                FROM requests r
+                JOIN users u ON r.requesters_id = u.id
+                WHERE r.id = ?";
+        $query = $this->pdo->prepare($sql);
+        $query->execute([$requestId]);
+        $result = $query->fetch();
+        return $result ?: null;
+    }
+
+    public function getOldPendingRequests(int $ageInHours): array
+    {
+        $sql = "SELECT id FROM requests WHERE status = 'Pending' AND requested_date < NOW() - INTERVAL ? HOUR";
+        $query = $this->pdo->prepare($sql);
+        $query->execute([$ageInHours]);
+        return $query->fetchAll(PDO::FETCH_COLUMN);
+    }
 }

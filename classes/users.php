@@ -111,6 +111,14 @@ class Users
 
         return $query->fetchAll();
     }
+
+    public function getUsersByRole(string $role): array
+    {
+        $sql = "SELECT id, email FROM users WHERE role = ?";
+        $query = $this->pdo->prepare($sql);
+        $query->execute([$role]);
+        return $query->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 
 ?>

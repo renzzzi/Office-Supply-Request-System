@@ -5,6 +5,7 @@ require_once __DIR__ . "/../../classes/supplies.php";
 require_once __DIR__ . "/../../classes/requests.php";
 require_once __DIR__ . "/../../classes/users.php";
 require_once __DIR__ . "/../../classes/request_supplies.php";
+require_once __DIR__ . "/../../classes/notification.php";
 
 $pdoConnection = (new Database())->connect();
 $requestsObj = new Requests($pdoConnection);
@@ -41,26 +42,49 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $requestsObj->requesters_id = $_SESSION["user_id"];
         $requestsObj->requested_date = date("Y-m-d H:i:s");
+        
         if ($requestsObj->addRequest()) {
             $newRequestId = $pdoConnection->lastInsertId();
+
+            foreach ($_POST["supplies"] as $supply) {
+                $itemName = $supply["name"];
+                $quantity = $supply["quantity"];
+                $supplyDetails = $suppliesObj->getSupplyByName($itemName);
+
+                $supplyId = $supplyDetails["id"];
+                $requestSupplyObj->requests_id = $newRequestId;
+                $requestSupplyObj->supplies_id = $supplyId;
+                $requestSupplyObj->supply_quantity = $quantity;
+                $requestSupplyObj->addRequestSupply();
+            }
+
+            $notification = new Notification($pdoConnection);
+            $processors = $usersObj->getUsersByRole('Processor');
+            
+            $requesterName = $_SESSION['user_first_name'] . ' ' . $_SESSION['user_last_name'];
+            
+            $db_message = "New request #{$newRequestId} submitted by {$requesterName}.";
+            $link = "processor/index.php?page=manage-requests#pending-requests";
+            $email_subject = "New Supply Request #{$newRequestId}";
+            $email_body = "<h2>New Supply Request</h2><p>Request #{$newRequestId} submitted by {$requesterName} is pending action.</p><p><a href='http://localhost/Office-Supply-Request-System/{$link}'>View Request</a></p>";
+
+            foreach ($processors as $processor) {
+                $notification->createNotification(
+                    $processor['id'],
+                    $db_message,
+                    $link,
+                    $processor['email'],
+                    $email_subject,
+                    $email_body
+                );
+            }
+
+            header("Location: index.php?page=my-requests#ongoing-requests"); 
+            exit();
+
         } else {
             echo "<script>alert('Error adding request, please try again.');</script>";
         }
-
-        foreach ($_POST["supplies"] as $supply) {
-            $itemName = $supply["name"];
-            $quantity = $supply["quantity"];
-            $supplyDetails = $suppliesObj->getSupplyByName($itemName);
-
-            $supplyId = $supplyDetails["id"];
-            $requestSupplyObj->requests_id = $newRequestId;
-            $requestSupplyObj->supplies_id = $supplyId;
-            $requestSupplyObj->supply_quantity = $quantity;
-            $requestSupplyObj->addRequestSupply();
-        }
-
-        header("Location: index.php?page=my-requests#ongoing-requests"); 
-        exit();
     }
 }
 

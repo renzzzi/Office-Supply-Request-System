@@ -1,8 +1,9 @@
 CREATE DATABASE IF NOT EXISTS supply_desk;
 USE supply_desk;
 
-DROP TABLE IF EXISTS stock_logs;
+DROP TABLE IF EXISTS notifications;
 DROP TABLE IF EXISTS activity_logs;
+DROP TABLE IF EXISTS stock_logs;
 DROP TABLE IF EXISTS request_supplies;
 DROP TABLE IF EXISTS supplies;
 DROP TABLE IF EXISTS supply_categories;
@@ -123,6 +124,20 @@ CREATE TABLE activity_logs (
         FOREIGN KEY (user_id) REFERENCES users(id)
         ON UPDATE CASCADE
         ON DELETE SET NULL
+);
+
+CREATE TABLE notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    message TEXT NOT NULL,
+    link VARCHAR(255) NULL,
+    is_read TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_notifications_users
+        FOREIGN KEY (user_id) REFERENCES users(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
 );
 
 INSERT INTO departments (name) VALUES

@@ -2,6 +2,7 @@
     </div>
 
 <script src="../assets/chart.min.js"></script>
+<script src="../assets/notifications.js" defer></script>
 
 <?php
     $currentPage = $_GET['page'] ?? 'dashboard';

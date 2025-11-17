@@ -7,18 +7,15 @@ $pdoConnection = (new Database())->connect();
 $requestsObj = new Requests($pdoConnection);
 $suppliesObj = new Supplies($pdoConnection);
 
-// Fetch KPI data for dashboard display
 $pendingCount = $requestsObj->getCountByStatus(RequestStatus::Pending);
 $activeCount = $requestsObj->getRequestCountByStatuses([RequestStatus::Claimed->value, RequestStatus::Ready->value]);
 $completedToday = $requestsObj->getRequestCountCompletedToday();
 $lowStockCount = $suppliesObj->getLowStockCount(5);
 
-// Fetch Chart data
 $volumeByDept = $requestsObj->getRequestVolumeByDepartment();
 $inventoryValue = $suppliesObj->getInventoryValueByCategory();
 $recentActivity = $requestsObj->getRecentSystemActivity(5);
 
-// Prepare data for JavaScript
 $deptLabels = json_encode(array_column($volumeByDept, 'name'));
 $deptData = json_encode(array_column($volumeByDept, 'request_count'));
 $invCategoryLabels = json_encode(array_column($inventoryValue, 'name'));
@@ -61,7 +58,7 @@ $invCategoryData = json_encode(array_column($inventoryValue, 'total_value'));
 
 <div class="kpi-container">
     <div class="kpi-card">
-        <div class="kpi-title">Total Pending Requests</div>
+        <div class="kpi-title">Total Pending Request</div>
         <div class="kpi-value"><?= $pendingCount ?></div>
     </div>
     <div class="kpi-card">

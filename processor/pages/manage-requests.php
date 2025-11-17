@@ -6,6 +6,7 @@ require_once __DIR__ . "/../../classes/request_supplies.php";
 require_once __DIR__ . "/../../classes/users.php";
 require_once __DIR__ . "/../../classes/departments.php";
 require_once __DIR__ . "/../../classes/supplies.php";
+require_once __DIR__ . "/../../classes/notification.php";
 
 $pdoConnection = (new Database())->connect();
 $requestsObj = new Requests($pdoConnection);
@@ -13,18 +14,49 @@ $requestSuppliesObj = new RequestSupplies($pdoConnection);
 $usersObj = new Users($pdoConnection);
 $departmentsObj = new Departments($pdoConnection);
 $suppliesObj = new Supplies($pdoConnection);
+$notification = new Notification($pdoConnection);
 $errorRelease = "";
 $current_processor_id = $_SESSION['user_id'];
+
+$now = time();
+$last_check = $_SESSION['stale_check_time'] ?? 0;
+if (($now - $last_check) > 3600) { // Check once per hour max
+    $stale_requests = $requestsObj->getOldPendingRequests(REQUEST_STALE_HOURS);
+    if (!empty($stale_requests)) {
+        $processors = $usersObj->getUsersByRole('Processor');
+        foreach ($stale_requests as $stale_id) {
+            $db_message = "Reminder: Request #{$stale_id} has been pending for over " . REQUEST_STALE_HOURS . " hours.";
+            $link = "processor/index.php?page=manage-requests#pending-requests";
+            $email_subject = "Stale Request Alert";
+            $email_body = "<h2>Stale Request Alert</h2><p>{$db_message}</p><p><a href='http://localhost/Office-Supply-Request-System/{$link}'>View Pending Requests</a></p>";
+            foreach ($processors as $processor) {
+                $notification->createNotification($processor['id'], $db_message, $link, $processor['email'], $email_subject, $email_body);
+            }
+        }
+    }
+    $_SESSION['stale_check_time'] = $now;
+}
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"])) 
 {
     $request_id = $_POST["request_id"];
     $action = $_POST["action"];
+    $requester = $requestsObj->getRequesterInfoByRequestId($request_id);
 
     if ($action === "claim") 
     {
         $requestsObj->setProcessorId($request_id, $current_processor_id);
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Claimed);
+        
+        if ($requester) {
+            $processorName = $_SESSION['user_first_name'] . ' ' . $_SESSION['user_last_name'];
+            $db_message = "Your request #{$request_id} has been claimed by {$processorName}.";
+            $link = "requester/index.php?page=my-requests#ongoing-requests";
+            $email_subject = "Update on Supply Request #{$request_id}";
+            $email_body = "<h2>Request Claimed</h2><p>Your request #{$request_id} is now being processed by {$processorName}.</p><p><a href='http://localhost/Office-Supply-Request-System/{$link}'>View Status</a></p>";
+            $notification->createNotification($requester['id'], $db_message, $link, $requester['email'], $email_subject, $email_body);
+        }
+
         header("Location: index.php?page=manage-requests#claimed-requests");
         exit();
     } 
@@ -97,14 +129,32 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
         }
 
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Ready);
+        
+        if ($requester) {
+            $db_message = "Your request #{$request_id} is ready for pickup.";
+            $link = "requester/index.php?page=my-requests#ongoing-requests";
+            $email_subject = "Your Supply Request #{$request_id} is Ready";
+            $email_body = "<h2>Request Ready</h2><p>Your supplies for request #{$request_id} are now ready for pickup.</p><p><a href='http://localhost/Office-Supply-Request-System/{$link}'>View Details</a></p>";
+            $notification->createNotification($requester['id'], $db_message, $link, $requester['email'], $email_subject, $email_body);
+        }
+
         $_SESSION['form_success'] = "Request #{$request_id} has been marked as Ready for Pickup.";
         header("Location: index.php?page=manage-requests#ready-requests");
         exit();
-
     }
     elseif ($action === "deny") 
     {
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Denied);
+        
+        if ($requester) {
+            $processorName = $_SESSION['user_first_name'] . ' ' . $_SESSION['user_last_name'];
+            $db_message = "Your request #{$request_id} has been denied by {$processorName}.";
+            $link = "requester/index.php?page=my-requests#finished-requests";
+            $email_subject = "Update on Supply Request #{$request_id}";
+            $email_body = "<h2>Request Denied</h2><p>We are sorry to inform you that your request #{$request_id} has been denied.</p><p><a href='http://localhost/Office-Supply-Request-System/{$link}'>View Details</a></p>";
+            $notification->createNotification($requester['id'], $db_message, $link, $requester['email'], $email_subject, $email_body);
+        }
+
         header("Location: index.php?page=manage-requests#finished-requests");
         exit();
     }
@@ -121,10 +171,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
             foreach ($suppliesToRelease as $supply) 
             {
                 $suppliesObj->deductStock($supply['supplies_id'], $supply['supply_quantity'], $request_id);
+                $suppliesObj->triggerStockNotifications($supply['supplies_id']);
             }
         
             $requestsObj->setReleasedTo($request_id, $_POST["released_to"]);
             $requestsObj->updateRequestStatus($request_id, RequestStatus::Released);
+
+            if ($requester) 
+            {
+                $receiverName = htmlspecialchars($_POST["released_to"]);
+                $db_message = "Your supplies for request #{$request_id} have been released to {$receiverName}.";
+                $link = "requester/index.php?page=my-requests#finished-requests";
+                $email_subject = "Your Supply Request #{$request_id} is Complete";
+                $email_body = "<h2>Request Complete</h2><p>Your supplies for request #{$request_id} have been released to {$receiverName}. This request is now complete.</p><p><a href='http://localhost/Office-Supply-Request-System/{$link}'>View History</a></p>";
+                $notification->createNotification($requester['id'], $db_message, $link, $requester['email'], $email_subject, $email_body);
+            }
 
             header("Location: index.php?page=manage-requests#finished-requests");
             exit();

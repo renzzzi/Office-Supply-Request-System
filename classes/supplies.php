@@ -172,4 +172,41 @@ class Supplies
         $query->execute();
         return $query->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function triggerStockNotifications(int $supplyId)
+    {
+        $supply = $this->getSupplyById($supplyId);
+        if (!$supply) return;
+    
+        $newStock = (int)$supply['stock_quantity'];
+        $supplyName = $supply['name'];
+        $shouldNotify = false;
+        $db_message = "";
+    
+        if ($newStock <= 0) {
+            $shouldNotify = true;
+            $db_message = "URGENT: '{$supplyName}' is now out of stock.";
+        } elseif ($newStock <= STOCK_LOW_THRESHOLD) {
+            $shouldNotify = true;
+            $db_message = "Alert: '{$supplyName}' is low on stock ({$newStock} remaining).";
+        }
+    
+        if ($shouldNotify) {
+            $notification = new Notification($this->pdo);
+            $userObj = new Users($this->pdo);
+            $recipients = array_merge($userObj->getUsersByRole('Processor'), $userObj->getUsersByRole('Admin'));
+        
+            $link = "processor/index.php?page=supply-inventory";
+            $email_subject = $db_message;
+            $email_body = "<h2>Inventory Alert</h2><p>{$db_message}</p><p><a href='http://localhost/Office-Supply-Request-System/{$link}'>View Inventory</a></p>";
+        
+            $processedEmails = [];
+            foreach ($recipients as $recipient) {
+                if (!in_array($recipient['email'], $processedEmails)) {
+                     $notification->createNotification($recipient['id'], $db_message, $link, $recipient['email'], $email_subject, $email_body);
+                     $processedEmails[] = $recipient['email'];
+                }
+            }
+        }
+    }
 }
