@@ -10,11 +10,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const topItemData = JSON.parse(dataContainer.dataset.topItemsData);
     const textColor = 'rgba(228, 228, 231, 0.8)';
     const gridColor = 'rgba(63, 63, 70, 0.5)';
+    
     const statusPieCtx = document.getElementById('statusPieChart');
-
     if (statusPieCtx) {
         new Chart(statusPieCtx, {
-            type: 'doughnut',
+            type: 'bar',
             data: {
                 labels: [
                     'Pending', 'Claimed', 'Ready For Pickup', 'Released', 'Denied'
@@ -29,19 +29,36 @@ document.addEventListener('DOMContentLoaded', function () {
                         statusCounts['Denied']
                     ],
                     backgroundColor: [
-                        '#946728ff', '#ffa41cff', '#2e923fff', '#2cc987ff', '#e45252'
+                        '#946728ff', // Pending
+                        '#ffa41cff', // Claimed
+                        '#2e923fff', // Ready
+                        '#2cc987ff', // Released
+                        '#e45252'    // Denied
                     ],
                     borderColor: '#2a2a33',
-                    borderWidth: 2
+                    borderWidth: 1
                 }]
             },
             options: {
+                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        position: 'top',
-                        labels: { color: textColor }
+                    legend: { 
+                        display: false
+                    } 
+                },
+                scales: {
+                    x: {
+                        ticks: { 
+                            color: textColor,
+                            stepSize: 1
+                        },
+                        grid: { color: gridColor }
+                    },
+                    y: {
+                        ticks: { color: textColor },
+                        grid: { display: false }
                     }
                 }
             }

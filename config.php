@@ -12,4 +12,4 @@ define('SMTP_FROM_EMAIL', 'no-reply@supplydesk.com');
 define('SMTP_FROM_NAME', 'Supply Desk');
 
 define('STOCK_LOW_THRESHOLD', 10);
-define('REQUEST_STALE_HOURS', 48);
+define('REQUEST_STALE_HOURS', 24);

@@ -17,6 +17,7 @@
         echo '<script src="../assets/viewRequestSuppliesDetails.js"></script>';
         echo '<script src="../assets/releaseModalValidation.js"></script>';
         echo '<script src="../assets/handleReportModal.js"></script>';
+        echo '<script src="../assets/handleStaleRequests.js"></script>';
     }
 ?>
 

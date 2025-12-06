@@ -18,25 +18,6 @@ $notification = new Notification($pdoConnection);
 $errorRelease = "";
 $current_processor_id = $_SESSION['user_id'];
 
-$now = time();
-$last_check = $_SESSION['stale_check_time'] ?? 0;
-if (($now - $last_check) > 3600) { // Check once per hour max
-    $stale_requests = $requestsObj->getOldPendingRequests(REQUEST_STALE_HOURS);
-    if (!empty($stale_requests)) {
-        $processors = $usersObj->getUsersByRole('Processor');
-        foreach ($stale_requests as $stale_id) {
-            $db_message = "Reminder: Request #{$stale_id} has been pending for over " . REQUEST_STALE_HOURS . " hours.";
-            $link = "processor/index.php?page=manage-requests#pending-requests";
-            $email_subject = "Stale Request Alert";
-            $email_body = "<h2>Stale Request Alert</h2><p>{$db_message}</p><p><a href='http://localhost/Office-Supply-Request-System/{$link}'>View Pending Requests</a></p>";
-            foreach ($processors as $processor) {
-                $notification->createNotification($processor['id'], $db_message, $link, $processor['email'], $email_subject, $email_body);
-            }
-        }
-    }
-    $_SESSION['stale_check_time'] = $now;
-}
-
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"])) 
 {
     $request_id = $_POST["request_id"];
@@ -327,6 +308,11 @@ $finished_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatuses(
         <?php else: ?>
         <?php foreach ($pending_requests as $request): ?>
             <?php
+                $stale_seconds = 24 * 3600;
+                $requestTime = strtotime($request['requested_date']);
+                $isStale = (time() - $requestTime) > $stale_seconds;
+                $rowClass = $isStale ? "stale-row" : "pending-status";
+
                 $requester = $usersObj->getUserById($request["requesters_id"]);
                 $departmentName = "N/A";
                 if ($requester) {
@@ -350,8 +336,13 @@ $finished_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatuses(
                     }
                 }
             ?>
-            <tr class="pending-status">
-                <td><?= htmlspecialchars($request["id"]) ?></td>
+            <tr class="<?= $rowClass ?>">
+                <td>
+                    <?= htmlspecialchars($request["id"]) ?>
+                    <?php if($isStale): ?>
+                        <span class="stale-badge" title="Pending > <?= REQUEST_STALE_HOURS ?> Hours">STALE</span>
+                    <?php endif; ?>
+                </td>
                 <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
                 <td><?= htmlspecialchars($departmentName) ?></td>

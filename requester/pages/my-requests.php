@@ -95,6 +95,22 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
 
 ?>
 
+<div class="modal-container" id="supply-details-modal">
+    <div class="modal">
+        <span class="close-button">&times;</span>
+        <h2 id="supply-details-title">Full Supply List</h2>
+        <table border="1" style="width: 100%;">
+            <thead>
+                <tr>
+                    <th>Supply Name</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody id="supply-details-tbody"></tbody>
+        </table>
+    </div>
+</div>
+
 <div class="modal-container" id="add-request-modal">
     <div class="modal">
         <span class="close-button">&times;</span>
@@ -217,6 +233,7 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
             <tr>
                 <th>Request ID</th>
                 <th>Processor Name</th>
+                <th>Supplies (Summary)</th>
                 <th>Date Requested</th>
                 <th>Date Claimed</th>
                 <th>Date Ready For Pickup</th>
@@ -226,7 +243,7 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
         <tbody>
             <?php if (empty($ongoing_requests)): ?>
                 <tr class="empty-table-message">
-                    <td colspan="6">No ongoing requests to display.</td>
+                    <td colspan="7">No ongoing requests to display.</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($ongoing_requests as $request): ?>
@@ -236,10 +253,34 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
                             $processor = $usersObj->getUserById($request["processors_id"]);
                             $processorName = $processor ? htmlspecialchars($processor["first_name"] . " " . $processor["last_name"]) : "N/A";
                         }
+
+                        $supplySummary = $requestSupplyObj->getSupplySummaryByRequestId($request["id"]);
+                        $totalCount = $requestSupplyObj->getSupplyCountByRequestId($request["id"]);
+                        $finalSummary = ""; 
+                        if ($totalCount === 0) {
+                            $finalSummary = "No supplies";
+                        } else {
+                            $summaryParts = [];
+                            foreach ($supplySummary as $supply):
+                                $summaryParts[] = htmlspecialchars($supply['name']) . ' (x' . htmlspecialchars($supply['supply_quantity']) . ')';
+                            endforeach;
+                            $finalSummary = implode("<br>", $summaryParts);
+                            if ($totalCount > count($supplySummary)) {
+                                $remainingCount = $totalCount - count($supplySummary);
+                                $finalSummary .= "<br>" . "&nbsp;...and&nbsp;" . $remainingCount . "&nbsp;more";
+                            }
+                        }
                     ?>
                     <tr class="<?= strtolower(str_replace(' ', '-', $request["status"])) ?>-status">
                         <td><?= htmlspecialchars($request["id"]) ?></td>
                         <td><?= $processorName ?></td>
+                        
+                        <?php if ($totalCount > 2): ?>
+                            <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view all supplies" style="cursor: pointer; color: blue; text-decoration: underline;"><?= $finalSummary ?></td>
+                        <?php else: ?>
+                            <td><?= $finalSummary ?></td>
+                        <?php endif; ?>
+
                         <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                         <td><?= htmlspecialchars($request["claimed_date"] ?? "N/A") ?></td>
                         <td><?= htmlspecialchars($request["ready_date"] ?? "N/A") ?></td>
@@ -264,6 +305,7 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
             <tr>
                 <th>Request ID</th>
                 <th>Processor Name</th>
+                <th>Supplies (Summary)</th>
                 <th>Date Requested</th>
                 <th>Date Finished</th>
                 <th>Released To</th>
@@ -273,7 +315,7 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
         <tbody>
             <?php if (empty($finished_requests)): ?>
                 <tr class="empty-table-message">
-                    <td colspan="6">No finished requests to display.</td>
+                    <td colspan="7">No finished requests to display.</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($finished_requests as $request): ?>
@@ -283,10 +325,34 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
                             $processor = $usersObj->getUserById($request["processors_id"]);
                             $processorName = $processor ? htmlspecialchars($processor["first_name"] . " " . $processor["last_name"]) : "N/A";
                         }
+
+                        $supplySummary = $requestSupplyObj->getSupplySummaryByRequestId($request["id"]);
+                        $totalCount = $requestSupplyObj->getSupplyCountByRequestId($request["id"]);
+                        $finalSummary = ""; 
+                        if ($totalCount === 0) {
+                            $finalSummary = "No supplies";
+                        } else {
+                            $summaryParts = [];
+                            foreach ($supplySummary as $supply):
+                                $summaryParts[] = htmlspecialchars($supply['name']) . ' (x' . htmlspecialchars($supply['supply_quantity']) . ')';
+                            endforeach;
+                            $finalSummary = implode("<br>", $summaryParts);
+                            if ($totalCount > count($supplySummary)) {
+                                $remainingCount = $totalCount - count($supplySummary);
+                                $finalSummary .= "<br>" . "&nbsp;...and&nbsp;" . $remainingCount . "&nbsp;more";
+                            }
+                        }
                     ?>
                     <tr class="<?= strtolower(str_replace(' ', '-', $request["status"])) ?>-status">
                         <td><?= htmlspecialchars($request["id"]) ?></td>
                         <td><?= $processorName ?></td>
+                        
+                        <?php if ($totalCount > 2): ?>
+                            <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view all supplies" style="cursor: pointer; color: blue; text-decoration: underline;"><?= $finalSummary ?></td>
+                        <?php else: ?>
+                            <td><?= $finalSummary ?></td>
+                        <?php endif; ?>
+
                         <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                         <td><?= htmlspecialchars($request["finished_date"] ?? "N/A") ?></td>
                         <td><?= htmlspecialchars($request["released_to"] ?? "N/A") ?></td>
