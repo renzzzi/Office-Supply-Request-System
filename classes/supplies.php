@@ -209,4 +209,14 @@ class Supplies
             }
         }
     }
+
+    public function getAllSupplies()
+    {
+        $sql = "SELECT * FROM supplies ORDER BY name ASC";
+        $query = $this->pdo->prepare($sql);
+        $query->execute();
+
+        return $query->fetchAll();
+    }
 }
+?>

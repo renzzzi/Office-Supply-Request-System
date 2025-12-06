@@ -2,6 +2,7 @@
 
 require_once __DIR__ . "/../../classes/database.php";
 require_once __DIR__ . "/../../classes/supplies.php";
+require_once __DIR__ . "/../../classes/supply_categories.php";
 require_once __DIR__ . "/../../classes/requests.php";
 require_once __DIR__ . "/../../classes/users.php";
 require_once __DIR__ . "/../../classes/request_supplies.php";
@@ -11,6 +12,7 @@ $pdoConnection = (new Database())->connect();
 $requestsObj = new Requests($pdoConnection);
 $usersObj = new Users($pdoConnection);
 $suppliesObj = new Supplies($pdoConnection);
+$categoriesObj = new SupplyCategories($pdoConnection);
 $requestSupplyObj = new RequestSupplies($pdoConnection);
 
 $records_per_page = 5;
@@ -88,6 +90,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 
+$all_supplies = $suppliesObj->getAllSupplies();
+$all_categories = $categoriesObj->getAllSupplyCategories();
+
 ?>
 
 <div class="modal-container" id="add-request-modal">
@@ -96,12 +101,48 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <h2>New Request</h2>
 
         <form class="new-request-form" onsubmit="return false;">
+            
             <div class="form-group">
-                <label for="item-name">Supply Name</label>
+                <label for="item-name">Select Supply</label>
                 <div id="supply-name-error" class="error-message error"></div>
-                <input type="text" id="item-name" name="item-name" required autocomplete="off" placeholder="Start typing a supply name...">
-                <div id="supply-search-results"></div>
+                
+                <input type="hidden" id="item-name" name="item-name">
+
+                <div class="custom-dropdown-container" id="custom-supply-dropdown">
+                    <div class="custom-dropdown-trigger" id="dropdown-trigger">
+                        -- Select a Supply --
+                    </div>
+                    
+                    <div class="custom-dropdown-menu" id="dropdown-menu">
+                        <div class="dropdown-header">
+                            <input type="text" id="internal-search" placeholder="Search..." autocomplete="off">
+                            <select id="internal-category">
+                                <option value="">All</option>
+                                <?php foreach($all_categories as $category): ?>
+                                    <option value="<?= $category['id'] ?>"><?= htmlspecialchars($category['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="dropdown-options-list" id="dropdown-list">
+                            <?php foreach($all_supplies as $supply): ?>
+                                <div class="dropdown-option" 
+                                     data-value="<?= htmlspecialchars($supply['name']) ?>" 
+                                     data-category-id="<?= $supply['supply_categories_id'] ?>"
+                                     data-search-term="<?= strtolower(htmlspecialchars($supply['name'])) ?>">
+                                    <?= htmlspecialchars($supply['name']) ?> 
+                                    <span>
+                                        (Stock: <?= $supply['stock_quantity'] ?> <?= $supply['unit_of_supply'] ?>)
+                                    </span>
+                                </div>
+                            <?php endforeach; ?>
+                            <div class="dropdown-no-results" id="no-results">No supplies found</div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
+            
             <div class="form-group">
                 <label for="quantity">Quantity (Per Unit)</label>
                 <div id="quantity-error" class="error-message error"></div>
