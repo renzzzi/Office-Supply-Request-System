@@ -11,11 +11,11 @@ require_once '../classes/Database.php';
 
 $db = (new Database())->connect();
 
-$userId = $_SESSION["user_id"];
+$usersId = $_SESSION["user_id"];
 
-$query = "UPDATE notifications SET is_read = 1 WHERE user_id = :user_id AND is_read = 0";
+$query = "UPDATE notifications SET is_read = 1 WHERE users_id = :users_id AND is_read = 0";
 $stmt = $db->prepare($query);
-$stmt->bindParam(':user_id', $userId);
+$stmt->bindParam(':users_id', $usersId);
 
 if ($stmt->execute()) {
     echo json_encode(['success' => true]);

@@ -13,6 +13,7 @@ require_once __DIR__ . "/../classes/database.php";
 require_once __DIR__ . "/../classes/requests.php";
 require_once __DIR__ . "/../classes/users.php";
 require_once __DIR__ . "/../classes/notification.php";
+require_once __DIR__ . "/../config.php";
 
 header('Content-Type: application/json');
 

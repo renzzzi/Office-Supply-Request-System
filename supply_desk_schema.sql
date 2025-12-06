@@ -114,28 +114,28 @@ CREATE TABLE stock_logs (
 
 CREATE TABLE activity_logs (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NULL,
+    users_id INT NULL,
     ip_address VARCHAR(45) NOT NULL,
     action_type VARCHAR(50) NOT NULL,
     message TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_activity_logs_users
-        FOREIGN KEY (user_id) REFERENCES users(id)
+        FOREIGN KEY (users_id) REFERENCES users(id)
         ON UPDATE CASCADE
         ON DELETE SET NULL
 );
 
 CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
+    users_id INT NOT NULL,
     message TEXT NOT NULL,
     link VARCHAR(255) NULL,
     is_read TINYINT(1) NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_notifications_users
-        FOREIGN KEY (user_id) REFERENCES users(id)
+        FOREIGN KEY (users_id) REFERENCES users(id)
         ON UPDATE CASCADE
         ON DELETE CASCADE
 );

@@ -1,11 +1,13 @@
 <?php
 
+require_once __DIR__ . '/../config.php';
+
 class Database
 {
-    private $host = "127.0.0.1";
-    private $username = "root";
-    private $password = "";
-    private $db_name = "supply_desk";
+    private $host = DB_HOST;
+    private $username = DB_USER;
+    private $password = DB_PASS;
+    private $db_name = DB_NAME;
 
     private $conn;
 
@@ -22,7 +24,7 @@ class Database
         }
         catch (PDOException $e)
         {
-            echo "Connection error: " . $e->getMessage();
+            die("Connection error: " . $e->getMessage());
         }
         
         return $this->conn;

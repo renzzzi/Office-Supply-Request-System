@@ -552,9 +552,15 @@ class Requests
 
     public function getOldPendingRequests(int $ageInHours): array
     {
-        $sql = "SELECT id FROM requests WHERE status = 'Pending' AND requested_date < NOW() - INTERVAL ? HOUR";
+        $sql = "SELECT id FROM requests 
+                WHERE status = 'Pending' 
+                AND requested_date < (NOW() - INTERVAL :hours HOUR)";
+        
         $query = $this->pdo->prepare($sql);
-        $query->execute([$ageInHours]);
+        $query->bindParam(':hours', $ageInHours, PDO::PARAM_INT);
+        $query->execute();
+        
         return $query->fetchAll(PDO::FETCH_COLUMN);
     }
 }
+?>
