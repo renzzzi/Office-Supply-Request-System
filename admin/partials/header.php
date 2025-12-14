@@ -45,9 +45,6 @@
                         <div class="dropdown-body" id="notification-list">
                             <div class="notification-item-placeholder">Loading...</div>
                         </div>
-                        <div class="dropdown-footer">
-                            <a href="#">View All Notifications</a>
-                        </div>
                     </div>
                 </div>
                 <a href="../login/logout.php">Logout</a>
