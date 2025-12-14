@@ -44,9 +44,7 @@ CREATE TABLE requests (
     
     status ENUM('Pending', 'Claimed', 'Ready For Pickup', 'Released', 'Denied') NOT NULL DEFAULT 'Pending',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    requesters_message TEXT,
-    processors_remark TEXT,
-
+    
     CONSTRAINT fk_requests_users_requester
         FOREIGN KEY (requesters_id) REFERENCES users(id)
         ON UPDATE CASCADE

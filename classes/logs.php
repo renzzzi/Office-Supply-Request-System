@@ -1,78 +1,83 @@
 <?php
 
-require_once __DIR__ . '/../config.php';
-
 class Logs
 {
-    private $conn;
+    private PDO $pdo;
 
-    public function __construct($pdo)
+    public function __construct(PDO $pdo)
     {
-        $this->conn = $pdo;
+        $this->pdo = $pdo;
     }
 
-    public function logAction($userId, $actionType, $message)
+    public function logAction($userId, $actionType, $message): void
     {
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
-        
-        $sql = "INSERT INTO activity_logs (users_id, ip_address, action_type, message) 
-                VALUES (:uid, :ip, :type, :msg)";
-        
+
+        $stmt = $this->pdo->prepare(
+            "INSERT INTO activity_logs (users_id, ip_address, action_type, message)
+             VALUES (:uid, :ip, :type, :msg)"
+        );
+
         try {
-            $stmt = $this->conn->prepare($sql);
             $stmt->execute([
-                ':uid' => $userId,
-                ':ip' => $ip,
+                ':uid'  => $userId,
+                ':ip'   => $ip,
                 ':type' => $actionType,
-                ':msg' => $message
+                ':msg'  => $message
             ]);
         } catch (PDOException $e) {
-            // Silently fail logging to not disrupt main flow, or handle error
         }
     }
 
-    public function getStockLogsCount()
+    public function getStockLogsCount(): int
     {
-        $sql = "SELECT COUNT(*) FROM stock_logs";
-        $stmt = $this->conn->prepare($sql);
+        $stmt = $this->pdo->prepare(
+            "SELECT COUNT(*) FROM stock_logs"
+        );
         $stmt->execute();
-        return $stmt->fetchColumn();
+
+        return (int) $stmt->fetchColumn();
     }
 
-    public function getStockLogs($limit, $offset)
+    public function getStockLogs(int $limit, int $offset): array
     {
-        $sql = "SELECT sl.*, s.name AS supply_name, s.unit_of_supply 
-                FROM stock_logs sl 
-                JOIN supplies s ON sl.supplies_id = s.id 
-                ORDER BY sl.changed_at DESC 
-                LIMIT :limit OFFSET :offset";
-        $stmt = $this->conn->prepare($sql);
+        $stmt = $this->pdo->prepare(
+            "SELECT sl.*, s.name AS supply_name, s.unit_of_supply
+             FROM stock_logs sl
+             JOIN supplies s ON sl.supplies_id = s.id
+             ORDER BY sl.changed_at DESC
+             LIMIT :limit OFFSET :offset"
+        );
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
+
         return $stmt->fetchAll();
     }
 
-    public function getActivityLogsCount()
+    public function getActivityLogsCount(): int
     {
-        $sql = "SELECT COUNT(*) FROM activity_logs";
-        $stmt = $this->conn->prepare($sql);
+        $stmt = $this->pdo->prepare(
+            "SELECT COUNT(*) FROM activity_logs"
+        );
         $stmt->execute();
-        return $stmt->fetchColumn();
+
+        return (int) $stmt->fetchColumn();
     }
 
-    public function getActivityLogs($limit, $offset)
+    public function getActivityLogs(int $limit, int $offset): array
     {
-        $sql = "SELECT al.*, u.first_name, u.last_name 
-                FROM activity_logs al 
-                LEFT JOIN users u ON al.users_id = u.id 
-                ORDER BY al.created_at DESC 
-                LIMIT :limit OFFSET :offset";
-        $stmt = $this->conn->prepare($sql);
+        $stmt = $this->pdo->prepare(
+            "SELECT al.*, u.first_name, u.last_name
+             FROM activity_logs al
+             LEFT JOIN users u ON al.users_id = u.id
+             ORDER BY al.created_at DESC
+             LIMIT :limit OFFSET :offset"
+        );
         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
+
         return $stmt->fetchAll();
     }
 }
-?>
