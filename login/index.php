@@ -3,10 +3,12 @@
 session_start();
 require_once __DIR__ . "/../classes/database.php";
 require_once __DIR__ . "/../classes/users.php";
+require_once __DIR__ . "/../classes/logs.php";
 
 $pdoConnection = (new Database())->connect();
 
 $userObj = new Users($pdoConnection);
+$logsObj = new Logs($pdoConnection);
 
 $userInput = [];
 $errors = [];
@@ -42,7 +44,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
             $_SESSION["user_last_name"] = $user["last_name"];
             $_SESSION["user_role"] = $user["role"];
 
-            // Role check
+            $logsObj->logAction($user["id"], 'LOGIN', "User logged in successfully.");
+
             if ($_SESSION["user_role"] === "Admin")
             {
                 header("Location: ../admin");
@@ -63,6 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
         }
         else
         {
+            $logsObj->logAction(null, 'LOGIN_FAILED', "Failed login attempt for email: " . $userInput["email"]);
             $errors["input"] = "Email or password is incorrect";
         }
     }
@@ -105,11 +109,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
                     </div>
                     <button type="submit" class="login-button">Log In</button>
                 </form>
-<!--
-                <footer class="login-footer">
-                    <a href="" class="forgot-password-link">Forgot Password?</a>
-                </footer>
--->
             </div>
         </section>
     </main>

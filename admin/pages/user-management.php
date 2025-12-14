@@ -3,10 +3,12 @@ require_once __DIR__ . "/../../classes/database.php";
 require_once __DIR__ . "/../../classes/users.php";
 require_once __DIR__ . "/../../classes/departments.php";
 require_once __DIR__ . "/../../classes/notification.php";
+require_once __DIR__ . "/../../classes/logs.php";
 
 $pdoConnection = (new Database())->connect();
 $userObj = new Users($pdoConnection);
 $departmentObj = new Departments($pdoConnection);
+$logsObj = new Logs($pdoConnection);
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") 
 {
@@ -29,6 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
             $userObj->role = $_POST["role"];
             if ($userObj->addUser()) 
             {
+                $logsObj->logAction($_SESSION['user_id'], 'CREATE', "Created User: {$_POST['first_name']} {$_POST['last_name']} ({$_POST['role']})");
                 $_SESSION['success_message'] = "User added successfully.";
             }
         }
@@ -57,6 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
         {
             if ($userObj->updateUser($userId, $firstName, $lastName, $email, $_POST['departments_id'], $_POST['role'])) 
             {
+                $logsObj->logAction($_SESSION['user_id'], 'UPDATE', "Updated User ID: {$userId} ({$email})");
                 $_SESSION['success_message'] = "User updated successfully.";
             
                 if ($oldRole && $newRole !== $oldRole) 
@@ -88,7 +92,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
         } 
         else 
         {
+            $targetUser = $userObj->getUserById($_POST['entity_id']);
+            $targetEmail = $targetUser ? $targetUser['email'] : 'Unknown';
             $userObj->deleteUser($_POST['entity_id']);
+            $logsObj->logAction($_SESSION['user_id'], 'DELETE', "Deleted User ID: {$_POST['entity_id']} ({$targetEmail})");
             $_SESSION['success_message'] = "User deleted successfully.";
         }
         header("Location: index.php?page=user-management"); exit();
@@ -104,6 +111,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
             $departmentObj->name = trim($_POST["department_name"]);
             if ($departmentObj->addDepartment()) 
             {
+                $logsObj->logAction($_SESSION['user_id'], 'CREATE', "Created Department: {$_POST['department_name']}");
                 $_SESSION['success_message'] = "Department added successfully.";
             }
         }
@@ -120,6 +128,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
         {
             if($departmentObj->updateDepartment($_POST['entity_id'], $deptName)) 
             {
+                $logsObj->logAction($_SESSION['user_id'], 'UPDATE', "Updated Department ID: {$_POST['entity_id']} to '{$deptName}'");
                 $_SESSION['success_message'] = "Department updated successfully.";
             }
         }
@@ -134,6 +143,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
         else 
         {
             $departmentObj->deleteDepartment($_POST['entity_id']);
+            $logsObj->logAction($_SESSION['user_id'], 'DELETE', "Deleted Department ID: {$_POST['entity_id']}");
             $_SESSION['success_message'] = "Department deleted successfully.";
         }
         header("Location: index.php?page=user-management#departments-table"); exit();

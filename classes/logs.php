@@ -11,6 +11,26 @@ class Logs
         $this->conn = $pdo;
     }
 
+    public function logAction($userId, $actionType, $message)
+    {
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
+        
+        $sql = "INSERT INTO activity_logs (users_id, ip_address, action_type, message) 
+                VALUES (:uid, :ip, :type, :msg)";
+        
+        try {
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([
+                ':uid' => $userId,
+                ':ip' => $ip,
+                ':type' => $actionType,
+                ':msg' => $message
+            ]);
+        } catch (PDOException $e) {
+            // Silently fail logging to not disrupt main flow, or handle error
+        }
+    }
+
     public function getStockLogsCount()
     {
         $sql = "SELECT COUNT(*) FROM stock_logs";

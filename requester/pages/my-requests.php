@@ -7,6 +7,7 @@ require_once __DIR__ . "/../../classes/requests.php";
 require_once __DIR__ . "/../../classes/users.php";
 require_once __DIR__ . "/../../classes/request_supplies.php";
 require_once __DIR__ . "/../../classes/notification.php";
+require_once __DIR__ . "/../../classes/logs.php";
 
 $pdoConnection = (new Database())->connect();
 $requestsObj = new Requests($pdoConnection);
@@ -14,6 +15,7 @@ $usersObj = new Users($pdoConnection);
 $suppliesObj = new Supplies($pdoConnection);
 $categoriesObj = new SupplyCategories($pdoConnection);
 $requestSupplyObj = new RequestSupplies($pdoConnection);
+$logsObj = new Logs($pdoConnection);
 
 $records_per_page = 5;
 
@@ -59,6 +61,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $requestSupplyObj->supply_quantity = $quantity;
                 $requestSupplyObj->addRequestSupply();
             }
+
+            $logsObj->logAction($_SESSION['user_id'], 'CREATE', "Submitted Request #{$newRequestId}");
 
             $notification = new Notification($pdoConnection);
             $processors = $usersObj->getUsersByRole('Processor');

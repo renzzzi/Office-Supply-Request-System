@@ -7,6 +7,7 @@ require_once __DIR__ . "/../../classes/users.php";
 require_once __DIR__ . "/../../classes/departments.php";
 require_once __DIR__ . "/../../classes/supplies.php";
 require_once __DIR__ . "/../../classes/notification.php";
+require_once __DIR__ . "/../../classes/logs.php";
 
 $pdoConnection = (new Database())->connect();
 $requestsObj = new Requests($pdoConnection);
@@ -15,6 +16,8 @@ $usersObj = new Users($pdoConnection);
 $departmentsObj = new Departments($pdoConnection);
 $suppliesObj = new Supplies($pdoConnection);
 $notification = new Notification($pdoConnection);
+$logsObj = new Logs($pdoConnection);
+
 $errorRelease = "";
 $current_processor_id = $_SESSION['user_id'];
 
@@ -29,6 +32,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
         $requestsObj->setProcessorId($request_id, $current_processor_id);
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Claimed);
         
+        $logsObj->logAction($current_processor_id, 'UPDATE', "Claimed Request #{$request_id}");
+
         if ($requester) {
             $processorName = $_SESSION['user_first_name'] . ' ' . $_SESSION['user_last_name'];
             $db_message = "Your request #{$request_id} has been claimed by {$processorName}.";
@@ -111,6 +116,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
 
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Ready);
         
+        $logsObj->logAction($current_processor_id, 'UPDATE', "Marked Request #{$request_id} as Ready For Pickup");
+
         if ($requester) {
             $db_message = "Your request #{$request_id} is ready for pickup.";
             $link = "requester/index.php?page=my-requests#ongoing-requests";
@@ -127,6 +134,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
     {
         $requestsObj->updateRequestStatus($request_id, RequestStatus::Denied);
         
+        $logsObj->logAction($current_processor_id, 'UPDATE', "Denied Request #{$request_id}");
+
         if ($requester) {
             $processorName = $_SESSION['user_first_name'] . ' ' . $_SESSION['user_last_name'];
             $db_message = "Your request #{$request_id} has been denied by {$processorName}.";
@@ -158,9 +167,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["request_id"]))
             $requestsObj->setReleasedTo($request_id, $_POST["released_to"]);
             $requestsObj->updateRequestStatus($request_id, RequestStatus::Released);
 
+            $receiverName = htmlspecialchars($_POST["released_to"]);
+            $logsObj->logAction($current_processor_id, 'UPDATE', "Released Request #{$request_id} to {$receiverName}");
+
             if ($requester) 
             {
-                $receiverName = htmlspecialchars($_POST["released_to"]);
                 $db_message = "Your supplies for request #{$request_id} have been released to {$receiverName}.";
                 $link = "requester/index.php?page=my-requests#finished-requests";
                 $email_subject = "Your Supply Request #{$request_id} is Complete";
