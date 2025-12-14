@@ -8,14 +8,16 @@ $requestsObj = new Requests($pdoConnection);
 $usersObj = new Users($pdoConnection);
 $requester_id = $_SESSION['user_id'];
 
-// For the dashboard display, we fetch data without date filters (all time)
 $statusCounts = $requestsObj->getRequestCountsByStatusForRequester($requester_id);
 $topItems = $requestsObj->getTopRequestedItemsForRequester($requester_id);
 $recentRequests = $requestsObj->getRecentRequestsByRequesterId($requester_id);
 
 $ongoingCount = $statusCounts[RequestStatus::Pending->value] + $statusCounts[RequestStatus::Claimed->value] + $statusCounts[RequestStatus::Ready->value];
 $totalFinished = $statusCounts[RequestStatus::Released->value] + $statusCounts[RequestStatus::Denied->value];
-$successRate = $totalFinished > 0 ? round(($statusCounts[RequestStatus::Released->value] / $totalFinished) * 100) : 0;
+$readyCount = $statusCounts[RequestStatus::Ready->value];
+
+// Comparison of Ready For Pickup requests against Total Ongoing requests
+$serviceLevel = $ongoingCount > 0 ? round(($readyCount / $ongoingCount) * 100) : 0;
 
 $topItemLabels = json_encode(array_column($topItems, 'name'));
 $topItemData = json_encode(array_column($topItems, 'total_quantity'));
@@ -54,21 +56,21 @@ $topItemData = json_encode(array_column($topItems, 'total_quantity'));
 </div>
 
 <div class="kpi-container">
-    <div class="kpi-card">
+    <div class="kpi-card ongoing">
         <div class="kpi-title">Ongoing Requests</div>
         <div class="kpi-value"><?= $ongoingCount ?></div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card ready">
         <div class="kpi-title">Awaiting Pickup</div>
-        <div class="kpi-value"><?= $statusCounts[RequestStatus::Ready->value] ?></div>
+        <div class="kpi-value"><?= $readyCount ?></div>
     </div>
-    <div class="kpi-card">
+    <div class="kpi-card finished">
         <div class="kpi-title">Total Finished</div>
         <div class="kpi-value"><?= $totalFinished ?></div>
     </div>
-    <div class="kpi-card">
-        <div class="kpi-title">Success Rate</div>
-        <div class="kpi-value"><?= $successRate ?>%</div>
+    <div class="kpi-card service-level">
+        <div class="kpi-title">Service Level (Ready For Pickup / Ongoing)</div>
+        <div class="kpi-value"><?= $serviceLevel ?>%</div>
     </div>
 </div>
 

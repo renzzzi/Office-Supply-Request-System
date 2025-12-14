@@ -17,6 +17,7 @@
     --color-correct-hover: #5aa853;
     --color-correct-background: rgba(0, 255, 64, 0.1);
 
+    --color-ready: #00d9ff;
     --color-ready-background: rgba(0, 217, 255, 0.1);
 
     --color-error: #e45252;
@@ -27,6 +28,7 @@
     --color-pending-hover: #e3a851;
     --color-pending-background: rgba(255, 153, 0, 0.1);
 
+    --color-claimed: #eeff00;
     --color-claimed-background: rgba(238, 255, 0, 0.1);
 
     --color-text-primary: #e4e4e7;
@@ -613,7 +615,22 @@ hr {
     background-color: var(--color-surface);
     padding: 1.5rem;
     border-radius: 8px;
-    border-left: 4px solid var(--color-primary);
+}
+
+.kpi-card.ongoing {
+    border-left: 8px solid var(--color-pending);
+}
+
+.kpi-card.ready {
+    border-left: 8px solid var(--color-ready);
+}
+
+.kpi-card.finished {
+    border-left: 8px solid var(--color-correct);
+}
+
+.kpi-card.service-level {
+    border-left: 8px solid var(--color-primary);
 }
 
 .kpi-card .kpi-title {
