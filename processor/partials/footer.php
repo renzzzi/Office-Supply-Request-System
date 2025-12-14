@@ -11,14 +11,17 @@
         echo '<script src="../assets/processorDashboardCharts.js"></script>';
         echo '<script src="../assets/handleReportModal.js"></script>';
     }
-
-    if ($currentPage === 'manage-requests') {
+    elseif ($currentPage === 'manage-requests') {
         echo '<script src="../assets/prepareSupplyListRequest.js"></script>';
         echo '<script src="../assets/viewRequestSuppliesDetails.js"></script>';
         echo '<script src="../assets/releaseModalValidation.js"></script>';
         echo '<script src="../assets/handleReportModal.js"></script>';
         echo '<script src="../assets/handleStaleRequests.js"></script>';
     }
+    elseif ($currentPage === 'supply-inventory') {
+        echo '<script src="../assets/searchSupplyInventory.js"></script>';
+    }
+
 ?>
 
 </body>

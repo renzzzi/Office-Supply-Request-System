@@ -17,33 +17,30 @@ $categoriesObj = new SupplyCategories($pdoConnection);
 $requestSupplyObj = new RequestSupplies($pdoConnection);
 $logsObj = new Logs($pdoConnection);
 
-$records_per_page = 5;
-
-$page_ongoing = isset($_GET['page_ongoing']) && is_numeric($_GET['page_ongoing']) ? (int)$_GET['page_ongoing'] : 1;
-$offset_ongoing = ($page_ongoing - 1) * $records_per_page;
-$ongoing_statuses = [RequestStatus::Pending->value, RequestStatus::Claimed->value, RequestStatus::Ready->value];
-$total_ongoing = $requestsObj->getRequestCountByRequesterId($_SESSION['user_id'], $ongoing_statuses);
-$total_pages_ongoing = $total_ongoing > 0 ? ceil($total_ongoing / $records_per_page) : 1;
-$ongoing_requests = $requestsObj->getAllRequestsByRequesterId($_SESSION['user_id'], $ongoing_statuses, $records_per_page, $offset_ongoing);
-
-$page_finished = isset($_GET['page_finished']) && is_numeric($_GET['page_finished']) ? (int)$_GET['page_finished'] : 1;
-$offset_finished = ($page_finished - 1) * $records_per_page;
-$finished_statuses = [RequestStatus::Released->value, RequestStatus::Denied->value];
-$total_finished = $requestsObj->getRequestCountByRequesterId($_SESSION['user_id'], $finished_statuses);
-$total_pages_finished = $total_finished > 0 ? ceil($total_finished / $records_per_page) : 1;
-$finished_requests = $requestsObj->getAllRequestsByRequesterId($_SESSION['user_id'], $finished_statuses, $records_per_page, $offset_finished);
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['action']) && $_POST['action'] === 'delete_request') {
+    $requestIdToDelete = $_POST['request_id'];
+    
+    if (is_numeric($requestIdToDelete)) {
+        if ($requestsObj->deletePendingRequest((int)$requestIdToDelete, $_SESSION['user_id'])) {
+            $logsObj->logAction($_SESSION['user_id'], 'DELETE', "Deleted Pending Request #{$requestIdToDelete}");
+            header("Location: index.php?page=my-requests&msg=cancelled");
+            exit();
+        } else {
+            echo "<script>alert('Failed to cancel request. It may have already been claimed.');</script>";
+        }
+    }
+}
 
 $errors = [];
 
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
+if ($_SERVER["REQUEST_METHOD"] === "POST" && !isset($_POST['action'])) {
     if (!isset($_POST["supplies"]) || empty($_POST["supplies"])) {
         $errors["supplies"] = "Please add at least one supply to the request.";
     }
 
     if (empty(array_filter($errors))) {
         $userInfo = $usersObj->getUserById($_SESSION["user_id"]);
-        $departmentId = $userInfo["departments_id"];
-
+        
         $requestsObj->requesters_id = $_SESSION["user_id"];
         $requestsObj->requested_date = date("Y-m-d H:i:s");
         
@@ -66,23 +63,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $notification = new Notification($pdoConnection);
             $processors = $usersObj->getUsersByRole('Processor');
-            
             $requesterName = $_SESSION['user_first_name'] . ' ' . $_SESSION['user_last_name'];
-            
             $db_message = "New request #{$newRequestId} submitted by {$requesterName}.";
             $link = "processor/index.php?page=manage-requests#pending-requests";
             $email_subject = "New Supply Request #{$newRequestId}";
             $email_body = "<h2>New Supply Request</h2><p>Request #{$newRequestId} submitted by {$requesterName} is pending action.</p><p><a href='http://localhost/Office-Supply-Request-System/{$link}'>View Request</a></p>";
 
             foreach ($processors as $processor) {
-                $notification->createNotification(
-                    $processor['id'],
-                    $db_message,
-                    $link,
-                    $processor['email'],
-                    $email_subject,
-                    $email_body
-                );
+                $notification->createNotification($processor['id'], $db_message, $link, $processor['email'], $email_subject, $email_body);
             }
 
             header("Location: index.php?page=my-requests#ongoing-requests"); 
@@ -93,6 +81,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 }
+
+$records_per_page = 5;
+
+$page_ongoing = isset($_GET['page_ongoing']) && is_numeric($_GET['page_ongoing']) ? (int)$_GET['page_ongoing'] : 1;
+$offset_ongoing = ($page_ongoing - 1) * $records_per_page;
+$ongoing_statuses = [RequestStatus::Pending->value, RequestStatus::Claimed->value, RequestStatus::Ready->value];
+$total_ongoing = $requestsObj->getRequestCountByRequesterId($_SESSION['user_id'], $ongoing_statuses);
+$total_pages_ongoing = $total_ongoing > 0 ? ceil($total_ongoing / $records_per_page) : 1;
+$ongoing_requests = $requestsObj->getAllRequestsByRequesterId($_SESSION['user_id'], $ongoing_statuses, $records_per_page, $offset_ongoing);
+
+$page_finished = isset($_GET['page_finished']) && is_numeric($_GET['page_finished']) ? (int)$_GET['page_finished'] : 1;
+$offset_finished = ($page_finished - 1) * $records_per_page;
+$finished_statuses = [RequestStatus::Released->value, RequestStatus::Denied->value];
+$total_finished = $requestsObj->getRequestCountByRequesterId($_SESSION['user_id'], $finished_statuses);
+$total_pages_finished = $total_finished > 0 ? ceil($total_finished / $records_per_page) : 1;
+$finished_requests = $requestsObj->getAllRequestsByRequesterId($_SESSION['user_id'], $finished_statuses, $records_per_page, $offset_finished);
 
 $all_supplies = $suppliesObj->getAllSupplies();
 $all_categories = $categoriesObj->getAllSupplyCategories();
@@ -122,11 +126,9 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
         <h2>New Request</h2>
 
         <form class="new-request-form" onsubmit="return false;">
-            
             <div class="form-group">
                 <label for="item-name">Select Supply</label>
                 <div id="supply-name-error" class="error-message error"></div>
-                
                 <input type="hidden" id="item-name" name="item-name">
 
                 <div class="custom-dropdown-container" id="custom-supply-dropdown">
@@ -161,7 +163,6 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
                         </div>
                     </div>
                 </div>
-
             </div>
             
             <div class="form-group">
@@ -197,7 +198,6 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
     <div class="modal">
         <span class="close-button">&times;</span>
         <h2>Generate Request Report</h2>
-
         <form id="report-form" method="GET" target="_blank">
             <div class="form-group">
                 <label for="report-type">Request Type</label>
@@ -207,17 +207,14 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
                     <option value="finished">Finished Requests</option>
                 </select>
             </div>
-            
             <div class="form-group">
                 <label for="start-date">Start Date (Optional)</label>
                 <input type="date" id="start-date" name="start_date">
             </div>
-
             <div class="form-group">
                 <label for="end-date">End Date (Optional)</label>
                 <input type="date" id="end-date" name="end_date">
             </div>
-
             <div class="report-buttons">
                 <button type="submit" id="print-report-btn" class="btn" data-action="pages/print-report.php">Print Report</button>
                 <button type="submit" id="download-csv-btn" class="btn" data-action="../api/generate-my-requests-csv.php">Download CSV</button>
@@ -225,6 +222,24 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
         </form>
     </div>
 </div>
+
+<div class="modal-container" id="delete-confirm-modal">
+    <div class="modal">
+        <span class="close-button">&times;</span>
+        <h2 style="color: #ef4444;">Cancel Request?</h2>
+        <p>Are you sure you want to cancel this request? This action cannot be undone.</p>
+        
+        <form method="POST" action="index.php?page=my-requests">
+            <input type="hidden" name="action" value="delete_request">
+            <input type="hidden" name="request_id" id="delete-request-id-input">
+            
+            <div class="modal-actions">
+                <button type="submit" class="button cancel-button" style="margin-top: 20px;">Yes, Cancel Request</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 
 <div class="page-controls">
     <button class="open-button" data-target="#add-request-modal">Add New Request</button>
@@ -241,14 +256,15 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
                 <th>Supplies (Summary)</th>
                 <th>Date Requested</th>
                 <th>Date Claimed</th>
-                <th>Date Ready For Pickup</th>
+                <th>Date Ready</th>
                 <th>Status</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($ongoing_requests)): ?>
                 <tr class="empty-table-message">
-                    <td colspan="7">No ongoing requests to display.</td>
+                    <td colspan="8">No ongoing requests to display.</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($ongoing_requests as $request): ?>
@@ -279,13 +295,20 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
                     <tr class="<?= strtolower(str_replace(' ', '-', $request["status"])) ?>-status">
                         <td><?= htmlspecialchars($request["id"]) ?></td>
                         <td><?= $processorName ?></td>
-
                         <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view full supply details"><?= $finalSummary ?></td>
-
                         <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                         <td><?= htmlspecialchars($request["claimed_date"] ?? "N/A") ?></td>
                         <td><?= htmlspecialchars($request["ready_date"] ?? "N/A") ?></td>
                         <td><?= htmlspecialchars($request["status"]) ?></td>
+                        <td>
+                            <?php if ($request["status"] === 'Pending'): ?>
+                                <button class="cancel-button delete-request-btn" data-id="<?= $request['id'] ?>">
+                                    Cancel
+                                </button>
+                            <?php else: ?>
+                                <span style="color: #71717a; font-size: 0.85rem;">Processing</span>
+                            <?php endif; ?>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             <?php endif; ?>
@@ -326,30 +349,21 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
                             $processor = $usersObj->getUserById($request["processors_id"]);
                             $processorName = $processor ? htmlspecialchars($processor["first_name"] . " " . $processor["last_name"]) : "N/A";
                         }
-
                         $supplySummary = $requestSupplyObj->getSupplySummaryByRequestId($request["id"]);
                         $totalCount = $requestSupplyObj->getSupplyCountByRequestId($request["id"]);
                         $finalSummary = ""; 
-                        if ($totalCount === 0) {
-                            $finalSummary = "No supplies";
-                        } else {
+                        if ($totalCount === 0) $finalSummary = "No supplies";
+                        else {
                             $summaryParts = [];
-                            foreach ($supplySummary as $supply):
-                                $summaryParts[] = htmlspecialchars($supply['name']) . ' (x' . htmlspecialchars($supply['supply_quantity']) . ')';
-                            endforeach;
+                            foreach ($supplySummary as $supply) $summaryParts[] = htmlspecialchars($supply['name']) . ' (x' . htmlspecialchars($supply['supply_quantity']) . ')';
                             $finalSummary = implode("<br>", $summaryParts);
-                            if ($totalCount > count($supplySummary)) {
-                                $remainingCount = $totalCount - count($supplySummary);
-                                $finalSummary .= "<br>" . "&nbsp;...and&nbsp;" . $remainingCount . "&nbsp;more";
-                            }
+                            if ($totalCount > count($supplySummary)) $finalSummary .= "<br>" . "&nbsp;...and&nbsp;" . ($totalCount - count($supplySummary)) . "&nbsp;more";
                         }
                     ?>
                     <tr class="<?= strtolower(str_replace(' ', '-', $request["status"])) ?>-status">
                         <td><?= htmlspecialchars($request["id"]) ?></td>
                         <td><?= $processorName ?></td>
-
                         <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view full supply details"><?= $finalSummary ?></td>
-
                         <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                         <td><?= htmlspecialchars($request["finished_date"] ?? "N/A") ?></td>
                         <td><?= htmlspecialchars($request["released_to"] ?? "N/A") ?></td>

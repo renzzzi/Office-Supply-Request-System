@@ -218,5 +218,18 @@ class Supplies
 
         return $query->fetchAll();
     }
+
+    public function getAllSuppliesWithCategories()
+    {
+    
+        $sql = "SELECT s.*, c.name as category_name 
+                FROM supplies s 
+                LEFT JOIN supply_categories c ON s.supply_categories_id = c.id 
+                ORDER BY s.name ASC";
+    
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>

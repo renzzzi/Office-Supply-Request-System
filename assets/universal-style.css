@@ -214,12 +214,14 @@ button:hover, .open-button:hover {
 }
 
 .deny-button,
-.remove-button {
+.remove-button,
+.cancel-button {
     background-color: var(--color-error);
 }
 
 .deny-button:hover,
-.remove-button:hover {
+.remove-button:hover,
+.cancel-button:hover {
     background-color: var(--color-error-hover);
 }
 

@@ -650,5 +650,35 @@ class Requests
         $query->execute([$processorId]);
         return $query->fetchAll(PDO::FETCH_KEY_PAIR);
     }
+
+    public function deletePendingRequest(int $requestId, int $requesterId): bool
+    {
+        $checkSql = "SELECT status FROM requests WHERE id = ? AND requesters_id = ?";
+        $checkStmt = $this->pdo->prepare($checkSql);
+        $checkStmt->execute([$requestId, $requesterId]);
+        $status = $checkStmt->fetchColumn();
+
+        if ($status !== 'Pending') {
+            return false;
+        }
+
+        try {
+            $this->pdo->beginTransaction();
+
+            $delSupplies = "DELETE FROM request_supplies WHERE requests_id = ?";
+            $stmt1 = $this->pdo->prepare($delSupplies);
+            $stmt1->execute([$requestId]);
+
+            $delRequest = "DELETE FROM requests WHERE id = ?";
+            $stmt2 = $this->pdo->prepare($delRequest);
+            $stmt2->execute([$requestId]);
+
+            $this->pdo->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            return false;
+        }
+    }
 }
 ?>

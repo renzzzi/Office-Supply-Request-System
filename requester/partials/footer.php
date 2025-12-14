@@ -11,11 +11,11 @@
         echo '<script src="../assets/requesterDashboardCharts.js"></script>';
         echo '<script src="../assets/handleReportModal.js"></script>';
     }
-
-    if ($currentPage === 'my-requests') {
+    elseif ($currentPage === 'my-requests') {
         echo '<script src="../assets/viewRequestSuppliesDetails.js"></script>';
         echo '<script src="../assets/handleNewRequestForm.js"></script>';
         echo '<script src="../assets/handleReportModal.js"></script>';
+        echo '<script src="../assets/handleRequestCancellation.js"></script>';
     }
 ?>
 
