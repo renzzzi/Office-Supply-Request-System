@@ -29,11 +29,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         statusCounts['Denied']
                     ],
                     backgroundColor: [
-                        '#946728ff', // Pending
-                        '#ffa41cff', // Claimed
-                        '#2e923fff', // Ready
-                        '#2cc987ff', // Released
-                        '#e45252'    // Denied
+                        '#d39237', // Pending
+                        '#eeff00', // Claimed
+                        '#00d9ff', // Ready
+                        '#26ac31', // Released
+                        '#e45252'  // Denied
                     ],
                     borderColor: '#2a2a33',
                     borderWidth: 1

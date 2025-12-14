@@ -302,7 +302,7 @@ $finished_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatuses(
     <button class="open-button" data-target="#report-modal">Generate Request Report</button>
 </div>
 
-<h2 id="pending-requests">Pending Requests</h2>
+<h2 id="pending-requests">Pending Requests (System Wide)</h2>
 <table>
     <thead>
         <tr>
@@ -381,7 +381,7 @@ $finished_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatuses(
 <?php endif; ?>
 
 
-<h2 id="claimed-requests">My Claimed Requests</h2>
+<h2 id="claimed-requests">Claimed Requests</h2>
 <table>
     <thead>
         <tr>
@@ -446,7 +446,7 @@ $finished_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatuses(
 <?php endif; ?>
 
 
-<h2 id="ready-requests">My Ready For Pickup Requests</h2>
+<h2 id="ready-requests">Ready For Pickup Requests</h2>
 <table>
     <thead>
         <tr>
@@ -503,7 +503,7 @@ $finished_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatuses(
 <?php endif; ?>
 
 
-<h2 id="finished-requests">My Finished Requests</h2>
+<h2 id="finished-requests">Finished Requests</h2>
 <table>
     <thead>
         <tr>

@@ -621,6 +621,10 @@ hr {
     border-left: 8px solid var(--color-pending);
 }
 
+.kpi-card.claimed {
+    border-left: 8px solid var(--color-claimed);
+}
+
 .kpi-card.ready {
     border-left: 8px solid var(--color-ready);
 }
@@ -629,7 +633,8 @@ hr {
     border-left: 8px solid var(--color-correct);
 }
 
-.kpi-card.service-level {
+.kpi-card.service-level, 
+.kpi-card.performance-level {
     border-left: 8px solid var(--color-primary);
 }
 

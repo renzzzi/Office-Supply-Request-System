@@ -12,12 +12,20 @@ $statusCounts = $requestsObj->getRequestCountsByStatusForRequester($requester_id
 $topItems = $requestsObj->getTopRequestedItemsForRequester($requester_id);
 $recentRequests = $requestsObj->getRecentRequestsByRequesterId($requester_id);
 
-$ongoingCount = $statusCounts[RequestStatus::Pending->value] + $statusCounts[RequestStatus::Claimed->value] + $statusCounts[RequestStatus::Ready->value];
-$totalFinished = $statusCounts[RequestStatus::Released->value] + $statusCounts[RequestStatus::Denied->value];
+$ongoingCount = $statusCounts[RequestStatus::Pending->value] 
+              + $statusCounts[RequestStatus::Claimed->value] 
+              + $statusCounts[RequestStatus::Ready->value];
+
 $readyCount = $statusCounts[RequestStatus::Ready->value];
 
-// Comparison of Ready For Pickup requests against Total Ongoing requests
-$serviceLevel = $ongoingCount > 0 ? round(($readyCount / $ongoingCount) * 100) : 0;
+$finishedToday = $requestsObj->getCountCompletedTodayByRequester($requester_id);
+
+$serviceLevel = 0;
+if ($ongoingCount > 0) {
+    $serviceLevel = round(($finishedToday / $ongoingCount) * 100);
+} elseif ($finishedToday > 0) {
+    $serviceLevel = 100;
+}
 
 $topItemLabels = json_encode(array_column($topItems, 'name'));
 $topItemData = json_encode(array_column($topItems, 'total_quantity'));
@@ -61,15 +69,15 @@ $topItemData = json_encode(array_column($topItems, 'total_quantity'));
         <div class="kpi-value"><?= $ongoingCount ?></div>
     </div>
     <div class="kpi-card ready">
-        <div class="kpi-title">Awaiting Pickup</div>
+        <div class="kpi-title">Ready For Pickup</div>
         <div class="kpi-value"><?= $readyCount ?></div>
     </div>
     <div class="kpi-card finished">
-        <div class="kpi-title">Total Finished</div>
-        <div class="kpi-value"><?= $totalFinished ?></div>
+        <div class="kpi-title">Finished Today</div>
+        <div class="kpi-value"><?= $finishedToday ?></div>
     </div>
     <div class="kpi-card service-level">
-        <div class="kpi-title">Service Level (Ready For Pickup / Ongoing)</div>
+        <div class="kpi-title">Service Level (Finished Today / Ongoing)</div>
         <div class="kpi-value"><?= $serviceLevel ?>%</div>
     </div>
 </div>
@@ -108,10 +116,9 @@ $topItemData = json_encode(array_column($topItems, 'total_quantity'));
         <?php else: ?>
             <?php foreach ($recentRequests as $request): ?>
                 <?php
-                    $processorName = "N/A";
-                    if (!empty($request["processors_id"])) {
-                        $processor = $usersObj->getUserById($request["processors_id"]);
-                        $processorName = $processor ? htmlspecialchars($processor["first_name"] . " " . $processor["last_name"]) : "N/A";
+                    $processorName = 'N/A';
+                    if (!empty($request["first_name"])) {
+                        $processorName = htmlspecialchars($request["first_name"] . " " . $request["last_name"]);
                     }
                 ?>
                 <tr class="<?= strtolower(str_replace(' ', '-', $request["status"])) ?>-status">

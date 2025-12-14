@@ -365,10 +365,13 @@ class Requests
 
     public function getRecentRequestsByRequesterId(int $requesterId, int $limit = 5): array
     {
-        $sql = "SELECT * FROM requests 
-                WHERE requesters_id = ? 
-                ORDER BY requested_date DESC 
+        $sql = "SELECT r.*, u.first_name, u.last_name
+                FROM requests r
+                LEFT JOIN users u ON r.processors_id = u.id
+                WHERE r.requesters_id = ? 
+                ORDER BY r.requested_date DESC 
                 LIMIT ?";
+        
         $query = $this->pdo->prepare($sql);
         $query->bindValue(1, $requesterId, PDO::PARAM_INT);
         $query->bindValue(2, $limit, PDO::PARAM_INT);
@@ -561,6 +564,91 @@ class Requests
         $query->execute();
         
         return $query->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    public function getProcessorPerformance()
+    {
+        $sql = "SELECT CONCAT(u.first_name, ' ', u.last_name) as name, COUNT(r.id) as total_processed
+                FROM requests r
+                JOIN users u ON r.processors_id = u.id
+                WHERE r.status IN ('Released', 'Denied')
+                GROUP BY r.processors_id
+                ORDER BY total_processed DESC";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function getTopDepartmentsByVolume($limit = 5)
+    {
+        $sql = "SELECT d.name, COUNT(r.id) as request_count
+                FROM requests r
+                JOIN users u ON r.requesters_id = u.id
+                JOIN departments d ON u.departments_id = d.id
+                GROUP BY d.id
+                ORDER BY request_count DESC
+                LIMIT :limit";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public function getProcessorPerformanceToday()
+    {
+        $sql = "SELECT u.first_name, u.last_name, COUNT(r.id) as finished_today
+                FROM users u
+                LEFT JOIN requests r ON u.id = r.processors_id 
+                    AND r.status IN ('Released', 'Denied')
+                    AND DATE(r.finished_date) = CURDATE()
+                WHERE u.role = 'Processor'
+                GROUP BY u.id
+                ORDER BY finished_today DESC";
+        
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getCountCompletedTodayByRequester(int $requesterId): int
+    {
+        $sql = "SELECT COUNT(id) FROM requests 
+                WHERE requesters_id = ? 
+                AND status IN ('Released', 'Denied') 
+                AND DATE(finished_date) = CURDATE()";
+        
+        $query = $this->pdo->prepare($sql);
+        $query->execute([$requesterId]);
+        return (int)$query->fetchColumn();
+    }
+
+    public function getAllDepartmentsVolume()
+    {
+        $sql = "SELECT d.name, COUNT(r.id) as request_count
+                FROM departments d
+                LEFT JOIN users u ON d.id = u.departments_id
+                LEFT JOIN requests r ON u.id = r.requesters_id
+                GROUP BY d.id, d.name
+                ORDER BY request_count DESC";
+        
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function getProcessorWeeklyActivity(int $processorId): array
+    {
+        $sql = "SELECT DATE(finished_date) as work_date, COUNT(id) as count
+                FROM requests 
+                WHERE processors_id = ? 
+                AND status IN ('Released', 'Denied')
+                AND finished_date >= DATE(NOW() - INTERVAL 6 DAY)
+                GROUP BY work_date
+                ORDER BY work_date ASC";
+
+        $query = $this->pdo->prepare($sql);
+        $query->execute([$processorId]);
+        return $query->fetchAll(PDO::FETCH_KEY_PAIR);
     }
 }
 ?>

@@ -1,30 +1,49 @@
 <?php
 require_once __DIR__ . "/../../classes/database.php";
 require_once __DIR__ . "/../../classes/requests.php";
+require_once __DIR__ . "/../../classes/users.php";
 
 $pdoConnection = (new Database())->connect();
 $requestsObj = new Requests($pdoConnection);
+$usersObj = new Users($pdoConnection);
 $processor_id = $_SESSION['user_id'];
 
 $pendingCount = $requestsObj->getCountByStatus(RequestStatus::Pending);
-$myActiveCount = $requestsObj->getCountByProcessorIdAndStatuses($processor_id, [RequestStatus::Claimed->value, RequestStatus::Ready->value]);
-$myCompletedToday = $requestsObj->getCountCompletedTodayByProcessor($processor_id); // This defaults to today
-$readyForPickupCount = $requestsObj->getCountByStatus(RequestStatus::Ready);
-$recentActions = $requestsObj->getRecentActionsByProcessor($processor_id);
-$topSystemItems = $requestsObj->getTopRequestedItemsSystemWide();
-
-$myClaimedCount = $requestsObj->getCountByProcessorIdAndStatus($processor_id, RequestStatus::Claimed);
+$claimedCount = $requestsObj->getCountByProcessorIdAndStatus($processor_id, RequestStatus::Claimed);
+$finishedToday = $requestsObj->getCountCompletedTodayByProcessor($processor_id);
 $myReadyCount = $requestsObj->getCountByProcessorIdAndStatus($processor_id, RequestStatus::Ready);
-$workflowData = json_encode(['claimed' => $myClaimedCount, 'ready' => $myReadyCount]);
 
-$topSystemItemLabels = json_encode(array_column($topSystemItems, 'name'));
-$topSystemItemData = json_encode(array_column($topSystemItems, 'total_quantity'));
+$performanceLevel = $pendingCount > 0 ? round(($finishedToday / ($finishedToday + $pendingCount)) * 100) : ($finishedToday > 0 ? 100 : 0);
+
+$recentActions = $requestsObj->getRecentActionsByProcessor($processor_id);
+
+$workflowData = json_encode([
+    'claimed' => $claimedCount, 
+    'ready' => $myReadyCount, 
+    'finished_today' => $finishedToday
+]);
+
+$rawWeeklyActivity = $requestsObj->getProcessorWeeklyActivity($processor_id);
+
+$weeklyLabels = [];
+$weeklyData = [];
+
+for ($i = 6; $i >= 0; $i--) {
+    $dateKey = date('Y-m-d', strtotime("-$i days"));
+    $dateLabel = date('M d', strtotime("-$i days"));
+    
+    $weeklyLabels[] = $dateLabel;
+    $weeklyData[] = $rawWeeklyActivity[$dateKey] ?? 0;
+}
+
+$weeklyLabelsJson = json_encode($weeklyLabels);
+$weeklyDataJson = json_encode($weeklyData);
 ?>
 
 <div id="dashboard-data"
      data-workflow-data='<?= $workflowData ?>'
-     data-top-system-items-labels='<?= $topSystemItemLabels ?>'
-     data-top-system-items-data='<?= $topSystemItemData ?>'
+     data-weekly-labels='<?= $weeklyLabelsJson ?>'
+     data-weekly-data='<?= $weeklyDataJson ?>'
      style="display: none;">
 </div>
 
@@ -55,35 +74,35 @@ $topSystemItemData = json_encode(array_column($topSystemItems, 'total_quantity')
 </div>
 
 <div class="kpi-container">
-    <div class="kpi-card">
-        <div class="kpi-title">Pending Requests</div>
+    <div class="kpi-card ongoing">
+        <div class="kpi-title">Pending Requests (System-Wide)</div>
         <div class="kpi-value"><?= $pendingCount ?></div>
     </div>
-    <div class="kpi-card">
-        <div class="kpi-title">My Active Requests</div>
-        <div class="kpi-value"><?= $myActiveCount ?></div>
+    <div class="kpi-card claimed">
+        <div class="kpi-title">Claimed Requests</div>
+        <div class="kpi-value"><?= $claimedCount ?></div>
     </div>
-    <div class="kpi-card">
-        <div class="kpi-title">My Completed Today</div>
-        <div class="kpi-value"><?= $myCompletedToday ?></div>
+    <div class="kpi-card finished">
+        <div class="kpi-title">Finished Today</div>
+        <div class="kpi-value"><?= $finishedToday ?></div>
     </div>
-    <div class="kpi-card">
-        <div class="kpi-title">Ready for Pickup</div>
-        <div class="kpi-value"><?= $readyForPickupCount ?></div>
+    <div class="kpi-card performance-level">
+        <div class="kpi-title">Performance Level (Finished Today / (Finished Today + Pending))</div>
+        <div class="kpi-value"><?= $performanceLevel ?>%</div>
     </div>
 </div>
 
 <div class="charts-container">
     <div class="chart-card">
-        <h3>My Workflow Breakdown</h3>
+        <h3>Request Status Breakdown</h3>
         <div class="chart-container">
             <canvas id="workflowBarChart"></canvas>
         </div>
     </div>
     <div class="chart-card">
-        <h3>Top 5 Requested Supplies (System-Wide)</h3>
+        <h3>My Weekly Request Throughput (Last 7 Days)</h3>
         <div class="chart-container">
-            <canvas id="systemTopItemsChart"></canvas>
+            <canvas id="weeklyThroughputChart"></canvas>
         </div>
     </div>
 </div>

@@ -1,77 +1,82 @@
 document.addEventListener('DOMContentLoaded', function () {
     const dataContainer = document.getElementById('dashboard-data');
-    
     if (!dataContainer) return;
 
     const workflowData = JSON.parse(dataContainer.dataset.workflowData);
-    const topSystemItemsLabels = JSON.parse(dataContainer.dataset.topSystemItemsLabels);
-    const topSystemItemsData = JSON.parse(dataContainer.dataset.topSystemItemsData);
     
+    const weeklyLabels = JSON.parse(dataContainer.dataset.weeklyLabels);
+    const weeklyData = JSON.parse(dataContainer.dataset.weeklyData);
+
     const textColor = 'rgba(228, 228, 231, 0.8)';
     const gridColor = 'rgba(63, 63, 70, 0.5)';
 
-    const workflowBarCtx = document.getElementById('workflowBarChart');
-    if (workflowBarCtx) {
-        new Chart(workflowBarCtx, {
+    const ctx1 = document.getElementById('workflowBarChart');
+    if (ctx1) {
+        new Chart(ctx1, {
             type: 'bar',
             data: {
-                labels: ['Claimed', 'Ready For Pickup'],
+                labels: ['Claimed', 'Ready for Pickup', 'Finished Today'],
                 datasets: [{
-                    label: 'My Active Requests',
-                    data: [workflowData.claimed, workflowData.ready],
-                    backgroundColor: ['#d39237', '#26ac74'],
-                    borderColor: ['#e3a851', '#2cb67d'],
+                    label: 'Count',
+                    data: [workflowData.claimed, workflowData.ready, workflowData.finished_today],
+                    backgroundColor: [
+                        '#faa415',
+                        '#00d9ff',
+                        '#2cb67d'
+                    ],
+                    borderColor: '#2a2a33',
                     borderWidth: 1
                 }]
             },
             options: {
-                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    x: { 
-                        ticks: { color: textColor, stepSize: 1 }, 
+                    y: { 
+                        beginAtZero: true, 
+                        ticks: { stepSize: 1, color: textColor }, 
                         grid: { color: gridColor } 
                     },
-                    y: { 
+                    x: { 
                         ticks: { color: textColor }, 
-                        grid: { display: false }
+                        grid: { display: false } 
                     }
                 }
             }
         });
     }
 
-    const systemTopItemsCtx = document.getElementById('systemTopItemsChart');
-    if (systemTopItemsCtx) {
-        new Chart(systemTopItemsCtx, {
-            type: 'bar',
+    const ctx2 = document.getElementById('weeklyThroughputChart');
+    if (ctx2) {
+        new Chart(ctx2, {
+            type: 'line',
             data: {
-                labels: topSystemItemsLabels,
+                labels: weeklyLabels,
                 datasets: [{
-                    label: 'Total Quantity Requested',
-                    data: topSystemItemsData,
-                    backgroundColor: 'rgba(127, 90, 240, 0.6)',
+                    label: 'Requests Finished',
+                    data: weeklyData,
+                    backgroundColor: 'rgba(127, 90, 240, 0.2)',
                     borderColor: 'rgba(127, 90, 240, 1)',
-                    borderWidth: 1
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
                 }]
             },
             options: {
-                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false }
                 },
                 scales: {
-                    x: { 
-                        ticks: { color: textColor }, 
-                        grid: { color: gridColor } 
-                    },
                     y: { 
+                        beginAtZero: true, 
+                        ticks: { stepSize: 1, color: textColor }, 
+                        grid: { color: gridColor },
+                        title: { display: true, text: 'Requests Completed', color: textColor }
+                    },
+                    x: { 
                         ticks: { color: textColor }, 
                         grid: { display: false } 
                     }
