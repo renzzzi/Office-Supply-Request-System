@@ -18,7 +18,6 @@
                 <li><a href="index.php?page=dashboard">Dashboard</a></li>
                 <li><a href="index.php?page=manage-requests">Manage Requests</a></li>
                 <li><a href="index.php?page=supply-inventory">Supply Inventory</a></li>
-                <li><a href="index.php?page=settings">Settings</a></li>
             </ul>
         </nav>
     </aside>

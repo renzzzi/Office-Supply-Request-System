@@ -241,6 +241,21 @@ $departments = $departmentObj->getAllDepartments();
     </div>
 </div>
 
+<div class="modal-container" id="delete-confirmation-modal">
+    <div class="modal">
+        <span class="close-button">&times;</span>
+        <h2 style="color: #ef4444; text-align: left;">Confirm Deletion</h2>
+        <p id="delete-modal-text" style="text-align: left;">Are you sure you want to delete this?</p>
+        <form action="index.php?page=user-management" method="POST">
+            <input type="hidden" name="action" id="delete-action-input" value="">
+            <input type="hidden" name="entity_id" id="delete-id-input" value="">
+            <div style="display: flex; gap: 10px; justify-content: flex-start; margin-top: 20px;">
+                <button type="submit" class="btn" style="background-color: #ef4444; color: white;">Yes, Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <h2 id="users-table">Users</h2>
 <button class="open-button" data-target="#add-user-modal">Add User</button>
 <table>
@@ -255,10 +270,7 @@ $departments = $departmentObj->getAllDepartments();
                 <td><?= htmlspecialchars($user["role"]) ?></td>
                 <td>
                     <button class="open-button btn" data-target="#edit-user-modal" data-modal-type="edit-user" data-entity-id="<?= $user['id'] ?>" data-entity-data='<?= htmlspecialchars(json_encode(['first_name' => $user['first_name'], 'last_name' => $user['last_name'], 'email' => $user['email'], 'departments_id' => $user['departments_id'], 'role' => $user['role']]), ENT_QUOTES, 'UTF-8') ?>'>Edit</button>
-                    <form action="index.php?page=user-management" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
-                        <input type="hidden" name="action" value="delete_user"><input type="hidden" name="entity_id" value="<?= $user['id'] ?>">
-                        <button type="submit" class="deny-button">Delete</button>
-                    </form>
+                    <button type="button" class="deny-button delete-trigger-btn" data-action="delete_user" data-id="<?= $user['id'] ?>" data-context="User">Delete</button>
                 </td>
             </tr>
         <?php endforeach; ?>
@@ -276,12 +288,11 @@ $departments = $departmentObj->getAllDepartments();
                 <td><?= htmlspecialchars($department["name"]) ?></td>
                 <td>
                     <button class="open-button btn" data-target="#edit-department-modal" data-modal-type="edit-department" data-entity-id="<?= $department['id'] ?>" data-entity-data='<?= htmlspecialchars(json_encode(['name' => $department['name']]), ENT_QUOTES, 'UTF-8') ?>'>Edit</button>
-                    <form action="index.php?page=user-management" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this department?');">
-                        <input type="hidden" name="action" value="delete_department"><input type="hidden" name="entity_id" value="<?= $department['id'] ?>">
-                        <button type="submit" class="deny-button">Delete</button>
-                    </form>
+                    <button type="button" class="deny-button delete-trigger-btn" data-action="delete_department" data-id="<?= $department['id'] ?>" data-context="Department">Delete</button>
                 </td>
             </tr>
         <?php endforeach; ?>
     </tbody>
 </table>
+
+<script src="../assets/handleDeleteModal.js"></script>

@@ -19,7 +19,6 @@
                 <li><a href="index.php?page=user-management">User Management</a></li>
                 <li><a href="index.php?page=system-database-configuration">System Database Configuration</a></li>
                 <li><a href="index.php?page=system-logs">System Logs</a></li>
-                <li><a href="index.php?page=settings">Settings</a></li>
             </ul>
         </nav>
     </aside>

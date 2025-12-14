@@ -17,7 +17,6 @@
             <ul>
                 <li><a href="index.php?page=dashboard">Dashboard</a></li>
                 <li><a href="index.php?page=my-requests">My Requests</a></li>
-                <li><a href="index.php?page=settings">Settings</a></li>
             </ul>
         </nav>
     </aside>

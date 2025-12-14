@@ -194,6 +194,21 @@ $categories = $categoryObj->getAllSupplyCategories();
     </div>
 </div>
 
+<div class="modal-container" id="delete-confirmation-modal">
+    <div class="modal">
+        <span class="close-button">&times;</span>
+        <h2 style="color: #ef4444; text-align: left;">Confirm Deletion</h2>
+        <p id="delete-modal-text" style="text-align: left;">Are you sure you want to delete this?</p>
+        <form action="index.php?page=system-database-configuration" method="POST">
+            <input type="hidden" name="action" id="delete-action-input" value="">
+            <input type="hidden" name="entity_id" id="delete-id-input" value="">
+            <div style="display: flex; gap: 10px; justify-content: flex-start; margin-top: 20px;">
+                <button type="submit" class="btn" style="background-color: #ef4444; color: white;">Yes, Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <h2 id="supplies-table">Supplies</h2>
 <button class="open-button" data-target="#add-supply-modal">Add Supply</button>
 <table>
@@ -210,10 +225,7 @@ $categories = $categoryObj->getAllSupplyCategories();
                 <td>
                     <button class="open-button btn" data-target="#edit-supply-modal" data-modal-type="edit-supply" data-entity-id="<?= $supply['id'] ?>" data-entity-data='<?= htmlspecialchars(json_encode(['name' => $supply['name'], 'supply_categories_id' => $supply['supply_categories_id'], 'unit_of_supply' => $supply['unit_of_supply'], 'price_per_unit' => $supply['price_per_unit']]), ENT_QUOTES, 'UTF-8') ?>'>Edit</button>
                     <button class="open-button btn" data-target="#adjust-stock-modal" data-modal-type="edit-adjust-stock" data-entity-id="<?= $supply['id'] ?>" data-entity-data='<?= htmlspecialchars(json_encode(['current_stock' => $supply['stock_quantity']]), ENT_QUOTES, 'UTF-8') ?>'>Adjust</button>
-                    <form action="index.php?page=system-database-configuration" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this supply?');">
-                        <input type="hidden" name="action" value="delete_supply"><input type="hidden" name="entity_id" value="<?= $supply['id'] ?>">
-                        <button type="submit" class="deny-button">Delete</button>
-                    </form>
+                    <button type="button" class="deny-button delete-trigger-btn" data-action="delete_supply" data-id="<?= $supply['id'] ?>" data-context="Supply">Delete</button>
                 </td>
             </tr>
         <?php endforeach; ?>
@@ -231,12 +243,11 @@ $categories = $categoryObj->getAllSupplyCategories();
                 <td><?= htmlspecialchars($category["name"]) ?></td>
                 <td>
                     <button class="open-button btn" data-target="#edit-category-modal" data-modal-type="edit-category" data-entity-id="<?= $category['id'] ?>" data-entity-data='<?= htmlspecialchars(json_encode(['name' => $category['name']]), ENT_QUOTES, 'UTF-8') ?>'>Edit</button>
-                    <form action="index.php?page=system-database-configuration" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this category?');">
-                        <input type="hidden" name="action" value="delete_category"><input type="hidden" name="entity_id" value="<?= $category['id'] ?>">
-                        <button type="submit" class="deny-button">Delete</button>
-                    </form>
+                    <button type="button" class="deny-button delete-trigger-btn" data-action="delete_category" data-id="<?= $category['id'] ?>" data-context="Category">Delete</button>
                 </td>
             </tr>
         <?php endforeach; ?>
     </tbody>
 </table>
+
+<script src="../assets/handleDeleteModal.js"></script>

@@ -5,6 +5,7 @@
 <script src="../assets/adminManagement.js"></script>
 <script src="../assets/handleAlerts.js"></script>
 <script src="../assets/notifications.js" defer></script>
+<script src="../assets/handleDeleteModal.js" defer></script>
 
 <?php
     $currentPage = $_GET['page'] ?? 'dashboard';
