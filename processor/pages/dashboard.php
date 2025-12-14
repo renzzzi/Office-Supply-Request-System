@@ -6,7 +6,6 @@ $pdoConnection = (new Database())->connect();
 $requestsObj = new Requests($pdoConnection);
 $processor_id = $_SESSION['user_id'];
 
-// Dashboard display fetches data for "all time" or specific defaults
 $pendingCount = $requestsObj->getCountByStatus(RequestStatus::Pending);
 $myActiveCount = $requestsObj->getCountByProcessorIdAndStatuses($processor_id, [RequestStatus::Claimed->value, RequestStatus::Ready->value]);
 $myCompletedToday = $requestsObj->getCountCompletedTodayByProcessor($processor_id); // This defaults to today
@@ -89,7 +88,7 @@ $topSystemItemData = json_encode(array_column($topSystemItems, 'total_quantity')
     </div>
 </div>
 
-<h2>My Recent Actions</h2>
+<h2>Recent Request Actions</h2>
 <table>
     <thead>
         <tr>

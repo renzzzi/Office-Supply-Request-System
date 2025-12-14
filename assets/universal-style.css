@@ -13,17 +13,21 @@
     --color-primary-hover: #9374f1;
     --color-primary-background: rgba(127, 90, 240, 0.1);
 
-    --color-correct: #26ac74;
-    --color-correct-hover: #2cb67d;
-    --color-correct-background: rgba(44, 182, 125, 0.1);
+    --color-correct: #26ac31;
+    --color-correct-hover: #5aa853;
+    --color-correct-background: rgba(0, 255, 64, 0.1);
+
+    --color-ready-background: rgba(0, 217, 255, 0.1);
 
     --color-error: #e45252;
     --color-error-hover: #ff6b6b;
     --color-error-background: rgba(255, 107, 107, 0.1);
 
-    --color-inprogress: #d39237;
-    --color-inprogress-hover: #e3a851;
-    --color-inprogress-background: rgba(227, 168, 81, 0.1);
+    --color-pending: #d39237;
+    --color-pending-hover: #e3a851;
+    --color-pending-background: rgba(255, 153, 0, 0.1);
+
+    --color-claimed-background: rgba(238, 255, 0, 0.1);
 
     --color-text-primary: #e4e4e7;
     --color-text-secondary: #a1a1aa;
@@ -200,11 +204,11 @@ button:hover, .open-button:hover {
 
  
 .claim-button {
-    background-color: var(--color-inprogress);
+    background-color: var(--color-pending);
 }
 
 .claim-button:hover {
-    background-color: var(--color-inprogress-hover);
+    background-color: var(--color-pending-hover);
 }
 
 .deny-button,
@@ -253,15 +257,15 @@ td {
 }
 
 .pending-status {
-    background-color: var(--color-inprogress-background);
+    background-color: var(--color-pending-background);
 }
 
 .claimed-status {
-    background-color: var(--color-inprogress-background);
+    background-color: var(--color-claimed-background);
 }
 
 .ready-for-pickup-status {
-    background-color: var(--color-correct-background);
+    background-color: var(--color-ready-background);
 }
 
 .released-status {
@@ -387,7 +391,7 @@ hr {
 }
 
 #prepare-supplies-list .low-stock-warning {
-    color: var(--color-inprogress);
+    color: var(--color-pending);
     font-size: 0.8rem;
     margin-top: 0.25rem;
 }

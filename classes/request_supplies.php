@@ -99,7 +99,7 @@ class RequestSupplies
 
     public function getSuppliesByRequestId($requestId)
     {
-        $sql = "SELECT rs.supplies_id, rs.supply_quantity, s.name , s.stock_quantity
+        $sql = "SELECT rs.supplies_id, rs.supply_quantity, s.name, s.unit_of_supply, s.stock_quantity
                 FROM request_supplies rs
                 JOIN supplies s ON rs.supplies_id = s.id
                 WHERE rs.requests_id = :request_id";

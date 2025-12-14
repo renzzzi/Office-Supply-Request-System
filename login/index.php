@@ -105,9 +105,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST")
                     </div>
                     <button type="submit" class="login-button">Log In</button>
                 </form>
+<!--
                 <footer class="login-footer">
                     <a href="" class="forgot-password-link">Forgot Password?</a>
                 </footer>
+-->
             </div>
         </section>
     </main>

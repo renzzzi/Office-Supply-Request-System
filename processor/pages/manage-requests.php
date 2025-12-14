@@ -214,6 +214,7 @@ $finished_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatuses(
             <thead>
                 <tr>
                     <th>Supply Name</th>
+                    <th>Unit of Supply</th>
                     <th>Quantity</th>
                 </tr>
             </thead>
@@ -294,9 +295,9 @@ $finished_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatuses(
 <table>
     <thead>
         <tr>
-            <th>ID</th>
-            <th>Requested At</th>
-            <th>Requester</th>
+            <th>Request ID</th>
+            <th>Date Requested</th>
+            <th>Requester Name</th>
             <th>Department</th>
             <th>Supplies (Summary)</th>
             <th>Actions</th>
@@ -346,11 +347,9 @@ $finished_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatuses(
                 <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
                 <td><?= htmlspecialchars($departmentName) ?></td>
-                <?php if ($totalCount > 2): ?>
-                    <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view all supplies"><?= $finalSummary ?></td>
-                <?php else: ?>
-                    <td><?= $finalSummary ?></td>
-                <?php endif; ?>
+                
+                <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view full supply details"><?= $finalSummary ?></td>
+
                 <td>
                     <form action="index.php?page=manage-requests" method="POST">
                         <input type="hidden" name="request_id" value="<?= htmlspecialchars($request["id"]) ?>">
@@ -375,11 +374,11 @@ $finished_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatuses(
 <table>
     <thead>
         <tr>
-            <th>ID</th>
-            <th>Requested At</th>
-            <th>Requester</th>
+            <th>Request ID</th>
+            <th>Date Requested</th>
+            <th>Requester Name</th>
             <th>Supplies (Summary)</th>
-            <th>Claimed At</th>
+            <th>Date Claimed</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -411,11 +410,9 @@ $finished_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatuses(
                 <td><?= htmlspecialchars($request["id"]) ?></td>
                 <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
-                <?php if ($totalCount > 2): ?>
-                    <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view all supplies"><?= $finalSummary ?></td>
-                <?php else: ?>
-                    <td><?= $finalSummary ?></td>
-                <?php endif; ?>
+                    
+                <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view full supply details"><?= $finalSummary ?></td>
+
                 <td><?= htmlspecialchars($request["claimed_date"]) ?></td>
                 <td>
                     <button type="button" class="open-button" data-target="#prepare-supplies-modal" data-request-id="<?= htmlspecialchars($request['id']) ?>">Finalize</button>
@@ -442,10 +439,10 @@ $finished_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatuses(
 <table>
     <thead>
         <tr>
-            <th>ID</th>
-            <th>Requester</th>
+            <th>Request ID</th>
+            <th>Requester Name</th>
             <th>Supplies (Summary)</th>
-            <th>Ready At</th>
+            <th>Date Ready For Pickup</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -476,11 +473,9 @@ $finished_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatuses(
             <tr class="ready-for-pickup-status">
                 <td><?= htmlspecialchars($request["id"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
-                <?php if ($totalCount > 2): ?>
-                    <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view all supplies"><?= $finalSummary ?></td>
-                <?php else: ?>
-                    <td><?= $finalSummary ?></td>
-                <?php endif; ?>
+                    
+                <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view full supply details"><?= $finalSummary ?></td>
+                
                 <td><?= htmlspecialchars($request["ready_date"]) ?></td>
                 <td><button class="open-button" data-target="#release-modal" data-request-id="<?= htmlspecialchars($request["id"]) ?>">Release</button></td>
             </tr>
@@ -501,10 +496,10 @@ $finished_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatuses(
 <table>
     <thead>
         <tr>
-            <th>ID</th>
-            <th>Requester</th>
+            <th>Request ID</th>
+            <th>Requester Name</th>
             <th>Supplies (Summary)</th>
-            <th>Finished At</th>
+            <th>Date Finished</th>
             <th>Released To</th>
             <th>Status</th>
         </tr>
@@ -536,11 +531,9 @@ $finished_requests = $requestsObj->getPaginatedRequestsByProcessorIdAndStatuses(
             <tr class="<?= $request['status'] === 'Released' ? 'released-status' : 'denied-status' ?>">
                 <td><?= htmlspecialchars($request["id"]) ?></td>
                 <td><?= htmlspecialchars($requester ? $requester["first_name"] . " " . $requester["last_name"] : "N/A") ?></td>
-                <?php if ($totalCount > 2): ?>
-                    <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view all supplies"><?= $finalSummary ?></td>
-                <?php else: ?>
-                    <td><?= $finalSummary ?></td>
-                <?php endif; ?>
+                    
+                <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view full supply details"><?= $finalSummary ?></td>
+
                 <td><?= htmlspecialchars($request["finished_date"]) ?></td>
                 <td><?= htmlspecialchars($request["released_to"] ?? 'N/A') ?></td>
                 <td><?= htmlspecialchars($request["status"]) ?></td>

@@ -87,14 +87,14 @@ $topItemData = json_encode(array_column($topItems, 'total_quantity'));
     </div>
 </div>
 
-<h2>Recent Activity</h2>
+<h2>Recent Request Activity</h2>
 <table>
     <thead>
         <tr>
             <th>Request ID</th>
             <th>Processor Name</th>
             <th>Date Requested</th>
-            <th>Date Finished</th>
+            <th>Last Update</th>
             <th>Status</th>
         </tr>
     </thead>
@@ -116,7 +116,7 @@ $topItemData = json_encode(array_column($topItems, 'total_quantity'));
                     <td><?= htmlspecialchars($request["id"]) ?></td>
                     <td><?= $processorName ?></td>
                     <td><?= htmlspecialchars($request["requested_date"]) ?></td>
-                    <td><?= htmlspecialchars($request["finished_date"] ?? "N/A") ?></td>
+                    <td><?= htmlspecialchars($request["updated_at"]) ?></td>
                     <td><?= htmlspecialchars($request["status"]) ?></td>
                 </tr>
             <?php endforeach; ?>

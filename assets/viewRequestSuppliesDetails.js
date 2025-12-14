@@ -41,6 +41,7 @@ if (detailsModal) {
                 rowsHtml += `
                     <tr>
                         <td>${supply.name}</td>
+                        <td>${supply.unit_of_supply}</td>
                         <td>${supply.supply_quantity}</td>
                     </tr>
                 `;

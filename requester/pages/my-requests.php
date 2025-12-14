@@ -103,6 +103,7 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
             <thead>
                 <tr>
                     <th>Supply Name</th>
+                    <th>Unit of Supply</th>
                     <th>Quantity</th>
                 </tr>
             </thead>
@@ -274,12 +275,8 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
                     <tr class="<?= strtolower(str_replace(' ', '-', $request["status"])) ?>-status">
                         <td><?= htmlspecialchars($request["id"]) ?></td>
                         <td><?= $processorName ?></td>
-                        
-                        <?php if ($totalCount > 2): ?>
-                            <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view all supplies" style="cursor: pointer; color: blue; text-decoration: underline;"><?= $finalSummary ?></td>
-                        <?php else: ?>
-                            <td><?= $finalSummary ?></td>
-                        <?php endif; ?>
+
+                        <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view full supply details"><?= $finalSummary ?></td>
 
                         <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                         <td><?= htmlspecialchars($request["claimed_date"] ?? "N/A") ?></td>
@@ -346,12 +343,8 @@ $all_categories = $categoriesObj->getAllSupplyCategories();
                     <tr class="<?= strtolower(str_replace(' ', '-', $request["status"])) ?>-status">
                         <td><?= htmlspecialchars($request["id"]) ?></td>
                         <td><?= $processorName ?></td>
-                        
-                        <?php if ($totalCount > 2): ?>
-                            <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view all supplies" style="cursor: pointer; color: blue; text-decoration: underline;"><?= $finalSummary ?></td>
-                        <?php else: ?>
-                            <td><?= $finalSummary ?></td>
-                        <?php endif; ?>
+
+                        <td class="view-supplies-trigger" data-request-id="<?= htmlspecialchars($request['id']) ?>" title="Click to view full supply details"><?= $finalSummary ?></td>
 
                         <td><?= htmlspecialchars($request["requested_date"]) ?></td>
                         <td><?= htmlspecialchars($request["finished_date"] ?? "N/A") ?></td>
